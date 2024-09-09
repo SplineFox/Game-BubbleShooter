@@ -24,7 +24,7 @@ namespace BubbleShooter.HexGrids
             return _grid.CellToWorld(offsetPoint);
         }
 
-        public Vector3 WorldToOffset(Vector3Int worldPoint)
+        public Vector3Int WorldToOffset(Vector3 worldPoint)
         {
             return _grid.WorldToCell(worldPoint);
         }
