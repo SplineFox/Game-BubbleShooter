@@ -23,6 +23,8 @@ namespace BubbleShooter
         {
             var bubbleLayer = LayerMask.NameToLayer("Bubble");
 
+            GameSetuper.Setup(new Vector2Int(_columnsCount, _rowsCount), _hexGridLayout.CellSize, Camera.main);
+
             _hexGrid = new HexGrid(_rowsCount, _columnsCount);
             _bubblePhysics = new BubblePhysics(0.4f, bubbleLayer);
 

@@ -7,6 +7,8 @@ namespace BubbleShooter.HexGrids
         [SerializeField] private Grid _grid;
         [SerializeField] private HexCellLayoutOffset _offset;
 
+        public Vector2 CellSize => _grid.cellSize;
+
         public Vector3 CubeToWorld(Vector3Int cubePoint)
         {
             var offsetCoordinate = HexCoordinates.CubeToOffset(cubePoint, _offset);
