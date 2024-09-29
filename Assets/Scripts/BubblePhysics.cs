@@ -5,64 +5,68 @@ using UnityEngine;
 
 public class BubblePhysics
 {
+    private const int MAX_ITERATIONS_COUNT = 100;
+
     private List<RaycastHit2D> _raycastHits;
     private ContactFilter2D _contactFilter;
     private float _bubbleRadius;
 
     private int _bubbleLayer;
-    private int _wallLayer;
 
-    public BubblePhysics(float bubbleRadius, int bubbleLayer, int wallLayer)
+    public BubblePhysics(float bubbleRadius, int bubbleLayer)
     {
         _raycastHits = new();
         _contactFilter = new();
         
         _bubbleRadius = bubbleRadius;
         _bubbleLayer = bubbleLayer;
-        _wallLayer = wallLayer;
     }
 
     public BubbleTrajectory FindTrajectory(Vector2 origin, Vector2 direction)
     {
         var point = new BubbleTrajectoryPoint(origin, direction);
         var trajectory = new BubbleTrajectory(point);
-        var destinationFound = false;
 
         var iteration = 0;
-        do
+        while (TryFindNextPoint(point, out var nextPoint) && iteration < MAX_ITERATIONS_COUNT)
         {
             iteration++;
-            point = FindNextPoint(point, out var found);
-            trajectory.AddPoint(point);
-            destinationFound |= found;
+            point = nextPoint;
+            trajectory.AddPoint(nextPoint);
         }
-        while (!destinationFound && iteration < 10);
 
         return trajectory;
     }
 
-    private BubbleTrajectoryPoint FindNextPoint(BubbleTrajectoryPoint point, out bool destinationFound)
+    private bool TryFindNextPoint(BubbleTrajectoryPoint point, out BubbleTrajectoryPoint nextPoint)
     {
+        if (point.Direction.magnitude == 0)
+        {
+            nextPoint = default;
+            return false;
+        }
+
         _raycastHits.Clear();
         Physics2D.CircleCast(point.Position, _bubbleRadius, point.Direction, _contactFilter, _raycastHits);
 
         if (_raycastHits.Count == 0)
         {
-            destinationFound = true;
-            return default;
+            nextPoint = default;
+            return false;
         }
 
-        destinationFound = false;
+        var bubbleReached = false;
         foreach (var hit in _raycastHits)
         {
-            destinationFound |= hit.collider.gameObject.layer == _bubbleLayer;
+            bubbleReached |= hit.collider.gameObject.layer == _bubbleLayer;
         }
 
         var firstHit = _raycastHits.First();
         var position = firstHit.point + firstHit.normal * _bubbleRadius;
-        var direction = destinationFound? Vector2.zero : Vector2.Reflect(point.Direction, firstHit.normal);
+        var direction = bubbleReached ? Vector2.zero : Vector2.Reflect(point.Direction, firstHit.normal);
 
-        return new BubbleTrajectoryPoint(position, direction);
+        nextPoint = new BubbleTrajectoryPoint(position, direction);
+        return true;
     }
 }
 

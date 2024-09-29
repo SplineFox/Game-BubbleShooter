@@ -22,10 +22,9 @@ namespace BubbleShooter
         private void Start()
         {
             var bubbleLayer = LayerMask.NameToLayer("Bubble");
-            var wallLayer = LayerMask.NameToLayer("Wall");
 
             _hexGrid = new HexGrid(_rowsCount, _columnsCount);
-            _bubblePhysics = new BubblePhysics(0.4f, bubbleLayer, wallLayer);
+            _bubblePhysics = new BubblePhysics(0.4f, bubbleLayer);
 
             for (int row = 0; row < _rowsCount; row++)
                 for (int column = 0; column < _columnsCount; column++)
