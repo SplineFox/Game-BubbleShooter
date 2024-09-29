@@ -13,9 +13,9 @@ GameObject:
   - component: {fileID: 7971667320082072079}
   - component: {fileID: 7701357911919657164}
   - component: {fileID: 8482310610131791925}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Bubble
-  m_TagString: GridCollision
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

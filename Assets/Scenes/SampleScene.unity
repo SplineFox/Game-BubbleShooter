@@ -293,9 +293,9 @@ GameObject:
   - component: {fileID: 1203316076}
   - component: {fileID: 1203316077}
   - component: {fileID: 1203316078}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Wall1
-  m_TagString: GridCollision
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -398,7 +398,7 @@ GameObject:
   - component: {fileID: 1490660246}
   - component: {fileID: 1490660247}
   - component: {fileID: 1490660248}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Wall2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -534,7 +534,7 @@ GameObject:
   - component: {fileID: 1677877117}
   - component: {fileID: 1677877118}
   - component: {fileID: 1677877119}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Wall3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
