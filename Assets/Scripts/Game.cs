@@ -9,13 +9,13 @@ namespace BubbleShooter
         [SerializeField] private int _rowsCount;
         [SerializeField] private int _columnsCount;
 
-        [SerializeField] private Bubble _bubblePrefab;
         [SerializeField] private Transform _launchPosition;
         [SerializeField] private HexGridLayout _hexGridLayout;
+        [SerializeField] private BubbleSpawner _bubbleSpawner;
 
         private HexGrid _hexGrid;
-        private BubblePhysics _bubblePhysics;
         private Bubble _bubble;
+        private BubblePhysics _bubblePhysics;
         private BubbleTrajectory _bubbleTrajectory;
         private Sequence _sequence;
 
@@ -32,7 +32,9 @@ namespace BubbleShooter
                     var offsetPosition = new Vector3Int(column, row);
                     var worldPosition = _hexGridLayout.OffsetToWorld(offsetPosition);
 
-                    var bubble = Instantiate(_bubblePrefab, worldPosition, Quaternion.identity);
+                    var bubble = _bubbleSpawner.GetItem();
+                    bubble.transform.position = worldPosition;
+
                     _hexGrid[row, column].Bubble = bubble;
 
                 }
@@ -42,24 +44,22 @@ namespace BubbleShooter
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                if (_bubble != null)
-                    return;
-
                 var mouseWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 mouseWorldPosition.z = 0;
 
                 var direction = (mouseWorldPosition - _launchPosition.position).normalized;
 
                 _bubbleTrajectory = _bubblePhysics.FindTrajectory(_launchPosition.position, direction);
-                _bubble = Instantiate(_bubblePrefab, _bubbleTrajectory.FirstPoint.Position, Quaternion.identity);
+                var bubble = _bubbleSpawner.GetItem();
 
-                AnimateBubble(_bubble, _bubbleTrajectory);
-                _bubble = null;
+                AnimateBubble(bubble, _bubbleTrajectory);
             }
         }
 
         private void AnimateBubble(Bubble bubble, BubbleTrajectory trajectory)
         {
+            bubble.transform.position = trajectory.FirstPoint.Position;
+
             _sequence?.Kill();
             _sequence = DOTween.Sequence();
 
@@ -72,12 +72,12 @@ namespace BubbleShooter
                     continue;
                 }
 
-                _sequence.Append(_bubble.transform.DOMove(point.Position, 0.2f));
+                _sequence.Append(bubble.transform.DOMove(point.Position, 0.2f));
             }
 
             var offsetPosition = _hexGridLayout.WorldToOffset(trajectory.LastPoint.Position);
             var worldPosition = _hexGridLayout.OffsetToWorld(offsetPosition);
-            _sequence.Append(_bubble.transform.DOMove(worldPosition, 0.2f));
+            _sequence.Append(bubble.transform.DOMove(worldPosition, 0.2f));
         }
 
         private void OnDrawGizmos()
