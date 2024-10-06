@@ -23,5 +23,18 @@ namespace BubbleShooter.HexGrids
                 for (int column = 0; column < columnCount; column++)
                     _gridCells[row, column] = new HexGridCell();
         }
+
+        public bool IsPositionInBounds(int row, int column)
+        {
+            return row >= 0
+                && column >= 0
+                && row < _rowCount
+                && column < _columnCount;
+        }
+
+        public bool IsPositionInBounds(Vector3Int offsetPosition)
+        {
+            return IsPositionInBounds(offsetPosition.y, offsetPosition.x);
+        }
     }
 }

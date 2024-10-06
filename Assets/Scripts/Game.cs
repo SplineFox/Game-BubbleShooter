@@ -13,22 +13,25 @@ namespace BubbleShooter
         [SerializeField] private HexGridLayout _hexGridLayout;
         [SerializeField] private BubbleSpawner _bubbleSpawner;
 
+        [SerializeField] private InputArea _inputArea;
+        [SerializeField] private GameSetuper _gameSetuper;
+
         private HexGrid _hexGrid;
-        private Bubble _bubble;
+        private Sequence _sequence;
+
         private BubblePhysics _bubblePhysics;
         private BubbleTrajectory _bubbleTrajectory;
-        private Sequence _sequence;
 
         private void Start()
         {
             var bubbleLayer = LayerMask.NameToLayer("Bubble");
 
-            GameSetuper.Setup(new Vector2Int(_columnsCount, _rowsCount), _hexGridLayout.CellSize, Camera.main);
+            _gameSetuper.Setup(new Vector2Int(_columnsCount, _rowsCount), _hexGridLayout.CellSize);
 
             _hexGrid = new HexGrid(_rowsCount, _columnsCount);
             _bubblePhysics = new BubblePhysics(0.4f, bubbleLayer);
 
-            for (int row = 0; row < _rowsCount; row++)
+            for (int row = 0; row < _rowsCount/2; row++)
                 for (int column = 0; column < _columnsCount; column++)
                 {
                     var offsetPosition = new Vector3Int(column, row);
@@ -42,20 +45,25 @@ namespace BubbleShooter
                 }
         }
 
-        private void Update()
+        private void OnEnable()
         {
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                var mouseWorldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                mouseWorldPosition.z = 0;
+            _inputArea.Clicked += OnAreaClicked;
+        }
 
-                var direction = (mouseWorldPosition - _launchPosition.position).normalized;
+        private void OnDisable()
+        {
+            _inputArea.Clicked -= OnAreaClicked;
+        }
 
-                _bubbleTrajectory = _bubblePhysics.FindTrajectory(_launchPosition.position, direction);
-                var bubble = _bubbleSpawner.GetItem();
+        private void OnAreaClicked(Vector3 clickPosition)
+        {
+            _inputArea.enabled = false;
+            var direction = (clickPosition - _launchPosition.position).normalized;
 
-                AnimateBubble(bubble, _bubbleTrajectory);
-            }
+            _bubbleTrajectory = _bubblePhysics.FindTrajectory(_launchPosition.position, direction);
+            var bubble = _bubbleSpawner.GetItem();
+
+            AnimateBubble(bubble, _bubbleTrajectory);
         }
 
         private void AnimateBubble(Bubble bubble, BubbleTrajectory trajectory)
@@ -80,6 +88,7 @@ namespace BubbleShooter
             var offsetPosition = _hexGridLayout.WorldToOffset(trajectory.LastPoint.Position);
             var worldPosition = _hexGridLayout.OffsetToWorld(offsetPosition);
             _sequence.Append(bubble.transform.DOMove(worldPosition, 0.2f));
+            _sequence.OnComplete(delegate { _inputArea.enabled = true; });
         }
 
         private void OnDrawGizmos()
