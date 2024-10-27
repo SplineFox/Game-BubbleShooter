@@ -11,6 +11,7 @@ namespace BubbleShooter
 
         [SerializeField] private Transform _launchPosition;
         [SerializeField] private HexGridLayout _hexGridLayout;
+        [SerializeField] private EffectSpawner _effectSpawner;
         [SerializeField] private BubbleSpawner _bubbleSpawner;
         [SerializeField] private BubbleAnimator _bubbleAnimator;
         [SerializeField] private BubblePhysics _bubblePhysics;
@@ -107,7 +108,7 @@ namespace BubbleShooter
                 var bubble = element.Item2;
                 bubble.SetColliderEnable(false);
 
-                _bubbleAnimator.AnimateBubblePop(bubble);
+                _effectSpawner.Spawn(bubble.transform.position, bubble.TypeId).Play();
                 _hexGrid[element.Item1].Bubble = null;
                 _bubbleSpawner.ReleaseItem(bubble);
             }
@@ -127,6 +128,7 @@ namespace BubbleShooter
                 _hexGrid[element.Item1].Bubble = null;
                 _bubbleAnimator.AnimaterBubbleDrop(bubble, worldPoint, () =>
                 {
+                    _effectSpawner.Spawn(bubble.transform.position, bubble.TypeId).Play();
                     _bubbleSpawner.ReleaseItem(bubble);
                 });
             }

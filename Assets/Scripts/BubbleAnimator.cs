@@ -3,14 +3,15 @@ using BubbleShooter.HexGrids;
 using DG.Tweening;
 using System;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class BubbleAnimator : MonoBehaviour
 {
     [SerializeField] private HexGridLayout _hexGridLayout;
-    [SerializeField] private EffectSpawner _effectSpawner;
     [SerializeField] private float _spawnDuration = 0.4f;
     [SerializeField] private float _moveDuration = 0.2f;
-    [SerializeField] private float _dropDuration = 1f;
+    [SerializeField] private float _dropDurationMin = 0.5f;
+    [SerializeField] private float _dropDurationMax = 1f;
 
     private Sequence _sequence;
 
@@ -40,12 +41,6 @@ public class BubbleAnimator : MonoBehaviour
         _sequence.OnComplete(() => onComplete?.Invoke());
     }
 
-    public void AnimateBubblePop(Bubble bubble)
-    {
-        var effect = _effectSpawner.Spawn(bubble.transform.position, bubble.TypeId);
-        effect.Play();
-    }
-
     public void AnimateBubbleSpawn(Bubble bubble)
     {
         bubble.DOKill();
@@ -63,13 +58,11 @@ public class BubbleAnimator : MonoBehaviour
 
     public void AnimaterBubbleDrop(Bubble bubble, Vector3 worldPoint, Action onComplete)
     {
+        var dropDuration = Random.Range(_dropDurationMin, _dropDurationMax);
+
         bubble.DOKill();
-        bubble.transform.DOMove(worldPoint, _dropDuration)
-            .SetEase(Ease.InBack)
-            .OnComplete(() => 
-            {
-                AnimateBubblePop(bubble);
-                onComplete?.Invoke();
-            });
+        bubble.transform.DOMove(worldPoint, dropDuration)
+            .OnComplete(() => onComplete?.Invoke())
+            .SetEase(Ease.InBack);
     }
 }

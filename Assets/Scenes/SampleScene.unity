@@ -377,6 +377,7 @@ MonoBehaviour:
   _columnsCount: 14
   _launchPosition: {fileID: 1580818676}
   _hexGridLayout: {fileID: 836836582}
+  _effectSpawner: {fileID: 1239108637}
   _bubbleSpawner: {fileID: 1626152589}
   _bubbleAnimator: {fileID: 1990488148}
   _bubblePhysics: {fileID: 763731889}
@@ -1395,10 +1396,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _hexGridLayout: {fileID: 836836582}
-  _effectSpawner: {fileID: 1239108637}
   _spawnDuration: 0.4
   _moveDuration: 0.2
-  _fallDuration: 1
+  _dropDurationMin: 0.8
+  _dropDurationMax: 1
 --- !u!4 &1990488149
 Transform:
   m_ObjectHideFlags: 0
