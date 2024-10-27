@@ -1,8 +1,9 @@
+using System;
+using System.Linq;
+using DG.Tweening;
+using UnityEngine;
 using BubbleShooter;
 using BubbleShooter.HexGrids;
-using DG.Tweening;
-using System;
-using UnityEngine;
 using Random = UnityEngine.Random;
 
 public class BubbleAnimator : MonoBehaviour
@@ -13,6 +14,8 @@ public class BubbleAnimator : MonoBehaviour
     [SerializeField] private float _dropDurationMin = 0.5f;
     [SerializeField] private float _dropDurationMax = 1f;
 
+    public float MoveDuration => _moveDuration;
+
     private Sequence _sequence;
 
     public void AnimateBubbleMove(Bubble bubble, BubbleTrajectory trajectory, Action onComplete)
@@ -22,22 +25,16 @@ public class BubbleAnimator : MonoBehaviour
         _sequence?.Kill();
         _sequence = DOTween.Sequence();
 
-        var isFirst = true;
-        foreach (var point in trajectory)
+        for (int index = 1; index < trajectory.Points.Count; index++)
         {
-            if (isFirst)
-            {
-                isFirst = false;
-                continue;
-            }
-
+            var point = trajectory.Points[index];
             _sequence.Append(bubble.transform.DOMove(point.Position, 0.2f));
         }
 
         var hexPoint = _hexGridLayout.WorldToHex(trajectory.LastPoint.Position);
         var worldPoint = _hexGridLayout.HexToWorld(hexPoint);
 
-        _sequence.Append(bubble.transform.DOMove(worldPoint, 0.2f));
+        _sequence.Append(bubble.transform.DOMove(worldPoint, 0.1f));
         _sequence.OnComplete(() => onComplete?.Invoke());
     }
 

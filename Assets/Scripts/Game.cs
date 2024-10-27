@@ -1,16 +1,33 @@
 using UnityEngine;
 using BubbleShooter.HexGrids;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEngine.UI;
+using System.Collections;
+using System;
 
 namespace BubbleShooter
 {
     public class Game : MonoBehaviour
     {
+        private const int _maxFoulsAllowed = 5;
+        private const int _scorePerBubble = 10;
+        private const int _scorePerFloatingBubble = 100;
+        private const int _scoreGroupSize = 3;
+
+        [Header("Grid")]
         [SerializeField] private int _rowsCount;
         [SerializeField] private int _columnsCount;
-
-        [SerializeField] private Transform _launchPosition;
         [SerializeField] private HexGridLayout _hexGridLayout;
+
+        [Header("UI")]
+        [SerializeField] private ScoreView _scoreView;
+        [SerializeField] private FoulsView _foulsView;
+
+        [Header("Dependecies")]
+        [SerializeField] private Transform _launchPosition;
+        [SerializeField] private Image _nextBubbleImage;
+
         [SerializeField] private EffectSpawner _effectSpawner;
         [SerializeField] private BubbleSpawner _bubbleSpawner;
         [SerializeField] private BubbleAnimator _bubbleAnimator;
@@ -20,7 +37,11 @@ namespace BubbleShooter
         [SerializeField] private GameSetuper _gameSetuper;
 
         private HexGrid _hexGrid;
+        private int _foulsAllowedCount;
+        private int _foulsCount;
+        private int _score;
 
+        private Bubble _currentBubble;
         private BubbleTrajectory _bubbleTrajectory;
         private BubbleSequenceDetector _bubbleSequenceDetector;
         private BubbleFloatersDetector _bubbleFloatersDetector;
@@ -30,13 +51,13 @@ namespace BubbleShooter
             var bubbleLayer = LayerMask.NameToLayer("Bubble");
 
             _gameSetuper.Setup(new Vector2Int(_columnsCount, _rowsCount), _hexGridLayout.CellSize, 0.4f);
-
             _hexGrid = new HexGrid(_rowsCount, _columnsCount);
-            SetupGrid();
 
             _bubblePhysics.Setup(0.4f, bubbleLayer);
             _bubbleSequenceDetector = new BubbleSequenceDetector(_hexGrid);
             _bubbleFloatersDetector = new BubbleFloatersDetector(_hexGrid);
+
+            Restart();
         }
 
         private void OnEnable()
@@ -49,6 +70,36 @@ namespace BubbleShooter
             _inputArea.Clicked -= OnAreaClicked;
         }
 
+        public void Restart()
+        {
+            _score = 0;
+            _scoreView.SetValue(_score);
+
+            _foulsAllowedCount = _maxFoulsAllowed;
+            _foulsCount = _maxFoulsAllowed;
+            _foulsView.SetValue(_foulsCount);
+
+            ClearGrid();
+            SetupGrid();
+            EnableInput();
+        }
+
+        private void ClearGrid()
+        {
+            for (int row = 0; row < _rowsCount; row++)
+            {
+                for (int column = 0; column < _columnsCount; column++)
+                {
+                    var cell = _hexGrid[row, column];
+                    if (cell.Bubble != null)
+                    {
+                        _bubbleSpawner.ReleaseItem(cell.Bubble);
+                        cell.Bubble = null;
+                    }
+                }
+            }
+        }
+
         private void SetupGrid()
         {
             for (int row = 0; row < _rowsCount / 2; row++)
@@ -57,26 +108,53 @@ namespace BubbleShooter
             }
         }
 
+        private void SetupBubble()
+        {
+            if (_currentBubble != null)
+                _bubbleSpawner.ReleaseItem(_currentBubble);
+
+            _currentBubble = _bubbleSpawner.GetItem();
+            _currentBubble.transform.position = _launchPosition.position;
+            _currentBubble.SetColliderEnable(false);
+
+            _nextBubbleImage.sprite = _bubbleSpawner.NextSprite;
+        }
+
         private void OnAreaClicked(Vector3 clickPosition)
         {
             var direction = (clickPosition - _launchPosition.position).normalized;
-
             _bubbleTrajectory = _bubblePhysics.FindTrajectory(_launchPosition.position, direction);
-            var bubble = _bubbleSpawner.GetItem();
 
-            LaunchBubble(bubble, _bubbleTrajectory);
+            DisableInput();
+            LaunchBubble(_currentBubble, _bubbleTrajectory);
+            _currentBubble.SetColliderEnable(true);
+            _currentBubble = null;
+        }
+
+        private void EnableInput()
+        {
+            _inputArea.enabled = true;
+            SetupBubble();
+        }
+
+        private void DisableInput()
+        {
+            _inputArea.enabled = false;
         }
 
         private void LaunchBubble(Bubble bubble, BubbleTrajectory trajectory)
         {
-            _inputArea.enabled = false;
             var hexPoint = _hexGridLayout.WorldToHex(trajectory.LastPoint.Position);
+            if (!_hexGrid.IsPointInBounds(hexPoint))
+            {
+                _bubbleSpawner.ReleaseItem(bubble);
+                return;
+            }
 
-            _bubbleAnimator.AnimateBubbleMove(bubble, trajectory, delegate
+            _bubbleAnimator.AnimateBubbleMove(bubble, trajectory, () =>
             {
                 _hexGrid[hexPoint].Bubble = bubble;
                 ProcessBubble(hexPoint);
-                _inputArea.enabled = true;
             });
         }
 
@@ -85,20 +163,37 @@ namespace BubbleShooter
             if (_bubbleSequenceDetector.TryGetSequence(hexPoint, out var sequence))
             {
                 PopBubbles(sequence);
+                _score += CalculateScorePoints(sequence.Count(), false);
 
                 if (_bubbleFloatersDetector.TryGetFloaters(out var floaters))
+                {
                     DropBubbles(floaters);
+                    _score += CalculateScorePoints(sequence.Count(), true);
+                }
+
+                _scoreView.SetValue(_score);
+                EnableInput();
+                return;
             }
 
-            return;
-            if (IsMovePossible())
+            if (!TryAddFoul())
             {
-                MoveBubblesDown();
+                if (IsMovePossible())
+                {
+                    StartCoroutine(MoveBubblesDown(() => EnableInput()));
+
+                    if (_bubbleFloatersDetector.TryGetFloaters(out var floaters))
+                        DropBubbles(floaters);
+
+                    return;
+                }
+                else
+                {
+                    Debug.Log("Move not possible");
+                    return;
+                }
             }
-            else
-            {
-                Debug.Log("Move not possible");
-            }
+            EnableInput();
         }
 
         private void PopBubbles(IEnumerable<(HexPoint, Bubble)> sequence)
@@ -146,7 +241,7 @@ namespace BubbleShooter
             return true;
         }
 
-        private void MoveBubblesDown()
+        private IEnumerator MoveBubblesDown(Action onComplete = null)
         {
             for (int row = _rowsCount - 2; row >= 0; row--)
             {
@@ -166,12 +261,17 @@ namespace BubbleShooter
                 }
             }
             SpawnBubblesLine(0);
+            yield return new WaitForSeconds(_bubbleAnimator.MoveDuration);
+            onComplete?.Invoke();
         }
 
         private void SpawnBubblesLine(int row)
         {
             for (int column = 0; column < _columnsCount; column++)
             {
+                if (_hexGrid[row, column].Bubble != null)
+                    continue;
+
                 var offsetPoint = new OffsetPoint(column, row);
                 var worldPoint = _hexGridLayout.OffsetToWorld(offsetPoint);
 
@@ -181,6 +281,50 @@ namespace BubbleShooter
                 _hexGrid[row, column].Bubble = bubble;
                 _bubbleAnimator.AnimateBubbleSpawn(bubble);
             }
+        }
+
+        private int CalculateScorePoints(int count, bool isFloatingBubble)
+        {
+            var score = 0;
+            var groupSize = _scoreGroupSize;
+            var groupScore = isFloatingBubble
+                ? _scorePerFloatingBubble
+                : _scorePerBubble;
+
+            for (int index = 0; index < count; index++)
+            {
+                score += groupScore;
+
+                if ((index + 1) % groupSize == 0)
+                {
+                    groupScore += _scorePerBubble;
+                }
+            }
+
+            return score;
+        }
+
+        private bool TryAddFoul()
+        {
+            _foulsCount--;
+            if (_foulsCount > 0)
+            {
+                _foulsView.SetValue(_foulsCount);
+                return true;
+            }
+
+            _foulsAllowedCount--;
+            if (_foulsAllowedCount > 0)
+            {
+                _foulsCount = _foulsAllowedCount;
+                _foulsView.SetValue(_foulsCount);
+                return false;
+            }
+
+            _foulsAllowedCount = _maxFoulsAllowed;
+            _foulsCount = _maxFoulsAllowed;
+            _foulsView.SetValue(_foulsCount);
+            return false;
         }
 
         private void OnDrawGizmos()

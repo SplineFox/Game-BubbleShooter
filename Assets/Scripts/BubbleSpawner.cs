@@ -11,6 +11,8 @@ namespace BubbleShooter
         private int _nextTypeId;
 
         public int NextTypeId => _nextTypeId;
+        public Sprite NextSprite => _sprites[NextTypeId];
+
 
         protected override void Awake()
         {

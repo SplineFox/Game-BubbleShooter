@@ -12,6 +12,8 @@ namespace BubbleShooter
         [SerializeField] private Camera _camera;
         [SerializeField] private Canvas _canvas;
         [SerializeField] private RectTransform _circleDown;
+        [SerializeField] private RectTransform _circle1;
+        [SerializeField] private RectTransform _circle2;
         [SerializeField] private Transform _launchPosition;
 
         public void Setup(Vector2Int gridSize, Vector2 gridCellSize, float bubblePhysicalRadius)
@@ -26,7 +28,7 @@ namespace BubbleShooter
 
             SetupLaunchPosition(gridRect, _launchPosition);
             SetupCamera(gridRect, _camera);
-            SetupCanvas(gridRect, _canvas, _circleDown);
+            SetupCanvas(gridRect, _canvas, _circleDown, _circle1, _circle2);
             SetupWalls(gridRect, bubblePhysicalRadius);
         }
 
@@ -39,7 +41,7 @@ namespace BubbleShooter
             camera.transform.position = new Vector3(gridRect.center.x, gridRect.center.y, -100);
         }
 
-        public void SetupCanvas(Rect gridRect, Canvas canvas, RectTransform circleDown)
+        public void SetupCanvas(Rect gridRect, Canvas canvas, RectTransform circleDown, RectTransform circle1, RectTransform circle2)
         {
             var heightToWidthRation = gridRect.height / gridRect.width;
             var canvasTransform = canvas.transform as RectTransform;
@@ -57,6 +59,12 @@ namespace BubbleShooter
 
             circleDown.sizeDelta = new Vector2(512f, 512f);
             circleDown.position = new Vector3(gridRect.center.x, gridRect.yMin, 1f);
+            
+            circle1.sizeDelta = new Vector2(256f, 256f);
+            circle1.position = new Vector3(gridRect.center.x - 2f, gridRect.yMin - 1f, 1f);
+
+            circle2.sizeDelta = new Vector2(256f, 256f);
+            circle2.position = new Vector3(gridRect.center.x + 2f, gridRect.yMin - 1f, 1f);
         }
 
         private void SetupLaunchPosition(Rect gridSize, Transform launchPosition)

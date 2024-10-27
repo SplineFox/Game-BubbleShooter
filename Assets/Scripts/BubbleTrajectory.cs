@@ -9,6 +9,7 @@ namespace BubbleShooter
         private List<BubbleTrajectoryPoint> _points;
         public BubbleTrajectoryPoint FirstPoint => _points.First();
         public BubbleTrajectoryPoint LastPoint => _points.Last();
+        public IReadOnlyList<BubbleTrajectoryPoint> Points => _points;
 
         public BubbleTrajectory(BubbleTrajectoryPoint originPoint)
         {
