@@ -8,6 +8,9 @@ public static class GizmosUtils
     public static void DrawArrow(Vector3 startPoint, Vector3 endPoint)
     {
         Vector3 direction = endPoint - startPoint;
+        if (direction.magnitude == 0)
+            return;
+
         Vector3 right = Quaternion.LookRotation(direction) * Quaternion.Euler(180 + _arrowHeadAngle, 0, 0) * Vector3.forward;
         Vector3 left = Quaternion.LookRotation(direction) * Quaternion.Euler(180 - _arrowHeadAngle, 0, 0) * Vector3.forward;
 
