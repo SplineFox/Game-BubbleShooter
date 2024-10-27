@@ -1397,6 +1397,8 @@ MonoBehaviour:
   _hexGridLayout: {fileID: 836836582}
   _effectSpawner: {fileID: 1239108637}
   _spawnDuration: 0.4
+  _moveDuration: 0.2
+  _fallDuration: 1
 --- !u!4 &1990488149
 Transform:
   m_ObjectHideFlags: 0
