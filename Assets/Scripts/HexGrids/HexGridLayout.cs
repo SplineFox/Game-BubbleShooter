@@ -9,26 +9,31 @@ namespace BubbleShooter.HexGrids
 
         public Vector2 CellSize => _grid.cellSize;
 
-        public Vector3 CubeToWorld(Vector3Int cubePoint)
+        public Vector3 HexToWorld(HexPoint hexPoint)
         {
-            var offsetCoordinate = HexCoordinates.CubeToOffset(cubePoint, _offset);
-            return _grid.CellToWorld(offsetCoordinate);
+            var offsetPoint = HexPoints.HexToOffset(hexPoint, _offset);
+            var cellPoint = new Vector3Int(offsetPoint.column, offsetPoint.row);
+            return _grid.CellToWorld(cellPoint);
         }
 
-        public Vector3Int WorldToCube(Vector3 worldPoint)
+        public HexPoint WorldToHex(Vector3 worldPoint)
         {
-            var offsetCoordinate = _grid.WorldToCell(worldPoint);
-            return HexCoordinates.OffsetToCube(offsetCoordinate, _offset);
+            var cellPoint = _grid.WorldToCell(worldPoint);
+            var offsetPoint = new OffsetPoint(cellPoint.x, cellPoint.y);
+            return HexPoints.OffsetToHex(offsetPoint, _offset);
         }
 
-        public Vector3 OffsetToWorld(Vector3Int offsetPoint)
+        public Vector3 OffsetToWorld(OffsetPoint offsetPoint)
         {
-            return _grid.CellToWorld(offsetPoint);
+            var cellPoint = new Vector3Int(offsetPoint.column, offsetPoint.row);
+            return _grid.CellToWorld(cellPoint);
         }
 
-        public Vector3Int WorldToOffset(Vector3 worldPoint)
+        public OffsetPoint WorldToOffset(Vector3 worldPoint)
         {
-            return _grid.WorldToCell(worldPoint);
+            var cellPoint = _grid.WorldToCell(worldPoint);
+            var offsetPoint = new OffsetPoint(cellPoint.x, cellPoint.y);
+            return offsetPoint;
         }
     }
 

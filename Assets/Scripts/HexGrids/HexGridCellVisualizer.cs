@@ -15,23 +15,23 @@ public class HexGridCellVisualizer : MonoBehaviour
         if (_grid == null || _grid.cellLayout != GridLayout.CellLayout.Hexagon)
             return;
 
-        var mousePosition = Event.current.mousePosition;
-        var ray = HandleUtility.GUIPointToWorldRay(mousePosition);
-        var worldPosition = new Vector3(ray.origin.x, ray.origin.y, _grid.transform.position.z);
+        var mousePoint = Event.current.mousePosition;
+        var ray = HandleUtility.GUIPointToWorldRay(mousePoint);
+        var worldPoint = new Vector3(ray.origin.x, ray.origin.y, _grid.transform.position.z);
 
-        var cellPosition = _grid.WorldToCell(worldPosition);
-        var cellCubePosition = _hexGridLayout.WorldToCube(worldPosition);
+        var cellPoint = _grid.WorldToCell(worldPoint);
+        var cellHexPoint = _hexGridLayout.WorldToHex(worldPoint);
 
         var cellSize = (_grid.cellSize + Vector3.right * _grid.cellSize.x * (1f - Mathf.Cos(30f * Mathf.Deg2Rad))) * 0.5f;
-        var cellCenterPosition = _grid.GetCellCenterWorld(cellPosition);
+        var cellCenterPoint = _grid.GetCellCenterWorld(cellPoint);
 
         var guiStyle = new GUIStyle(GUI.skin.label);
         guiStyle.alignment = TextAnchor.MiddleCenter;
 
         Gizmos.color = Color.yellow;
-        DrawHexagon(cellCenterPosition, cellSize, true);
+        DrawHexagon(cellCenterPoint, cellSize, true);
         GUI.color = Color.yellow;
-        Handles.Label(cellCenterPosition, cellCubePosition.ToString(), guiStyle);
+        Handles.Label(cellCenterPoint, cellHexPoint.ToString(), guiStyle);
     }
 
     private void DrawHexagon(Vector3 hexCenter, Vector3 hexSize, bool isPointy)

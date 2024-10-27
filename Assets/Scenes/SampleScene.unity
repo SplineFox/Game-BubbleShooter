@@ -353,6 +353,7 @@ GameObject:
   - component: {fileID: 763731887}
   - component: {fileID: 763731886}
   - component: {fileID: 763731888}
+  - component: {fileID: 763731889}
   m_Layer: 0
   m_Name: Game
   m_TagString: Untagged
@@ -377,6 +378,7 @@ MonoBehaviour:
   _launchPosition: {fileID: 1580818676}
   _hexGridLayout: {fileID: 836836582}
   _bubbleSpawner: {fileID: 1626152589}
+  _bubblePhysics: {fileID: 763731889}
   _inputArea: {fileID: 614810683}
   _gameSetuper: {fileID: 763731888}
 --- !u!4 &763731887
@@ -409,11 +411,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _wallThickness: 1
   _pixelsPerUnit: 256
-  _offset: 0.1
+  _offset: 0.4
   _camera: {fileID: 1870331743}
   _canvas: {fileID: 1482723784}
   _circleDown: {fileID: 1099322364}
   _launchPosition: {fileID: 1580818676}
+--- !u!114 &763731889
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 763731885}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5229f59dfc6b50c41a39247559aa4b00, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &836836578
 GameObject:
   m_ObjectHideFlags: 0

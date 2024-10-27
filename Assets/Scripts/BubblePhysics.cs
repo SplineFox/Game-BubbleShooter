@@ -1,24 +1,18 @@
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace BubbleShooter
 {
-    public class BubblePhysics
+    public class BubblePhysics : MonoBehaviour
     {
         private const int MAX_ITERATIONS_COUNT = 100;
 
-        private List<RaycastHit2D> _raycastHits;
-        private ContactFilter2D _contactFilter;
         private float _bubbleRadius;
-
         private int _bubbleLayer;
 
-        public BubblePhysics(float bubbleRadius, int bubbleLayer)
-        {
-            _raycastHits = new();
-            _contactFilter = new();
+        private RaycastHit2D _raycastHit;
 
+        public void Setup(float bubbleRadius, int bubbleLayer)
+        {
             _bubbleRadius = bubbleRadius;
             _bubbleLayer = bubbleLayer;
         }
@@ -47,27 +41,44 @@ namespace BubbleShooter
                 return false;
             }
 
-            _raycastHits.Clear();
-            Physics2D.CircleCast(point.Position, _bubbleRadius, point.Direction, _contactFilter, _raycastHits);
-
-            if (_raycastHits.Count == 0)
+            _raycastHit = Physics2D.CircleCast(point.Position, _bubbleRadius, point.Direction);
+            if (_raycastHit.collider == null)
             {
                 nextPoint = default;
                 return false;
             }
 
-            var bubbleReached = false;
-            foreach (var hit in _raycastHits)
-            {
-                bubbleReached |= hit.collider.gameObject.layer == _bubbleLayer;
-            }
-
-            var firstHit = _raycastHits.First();
-            var position = firstHit.point + firstHit.normal * _bubbleRadius;
-            var direction = bubbleReached ? Vector2.zero : Vector2.Reflect(point.Direction, firstHit.normal);
+            var bubbleReached = _raycastHit.collider.gameObject.layer == _bubbleLayer;
+            var position = _raycastHit.point + _raycastHit.normal * _bubbleRadius;
+            var direction = bubbleReached ? Vector2.zero : Vector2.Reflect(point.Direction, _raycastHit.normal);
 
             nextPoint = new BubbleTrajectoryPoint(position, direction);
             return true;
+        }
+
+        private void OnDrawGizmos()
+        {
+            //if (_raycastHits == null)
+            //    return;
+            //
+            //var point = Vector2.zero;
+            //var normal = Vector2.zero;
+            //foreach (var hit in _raycastHits)
+            //{
+            //    point += hit.point;
+            //    normal += hit.normal;
+            //
+            //    Gizmos.color = Color.magenta;
+            //    Gizmos.DrawWireSphere(hit.point, 0.02f);
+            //    GizmosUtils.DrawArrow(hit.point, hit.point + hit.normal);
+            //}
+            //
+            //point /= _raycastHits.Count;
+            //normal.Normalize();
+            //
+            //Gizmos.color = Color.red;
+            //Gizmos.DrawWireSphere(point, 0.02f);
+            //GizmosUtils.DrawArrow(point, point + normal);
         }
     }
 }

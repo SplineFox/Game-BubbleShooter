@@ -14,7 +14,7 @@ namespace BubbleShooter
         [SerializeField] private RectTransform _circleDown;
         [SerializeField] private Transform _launchPosition;
 
-        public void Setup(Vector2Int gridSize, Vector2 gridCellSize)
+        public void Setup(Vector2Int gridSize, Vector2 gridCellSize, float bubblePhysicalRadius)
         {
             var gridWidth = gridSize.x * gridCellSize.x + gridCellSize.x / 2f;
             var gridHeight = (gridSize.y - 1) * (gridCellSize.y * 0.75f) + gridCellSize.y;
@@ -27,7 +27,7 @@ namespace BubbleShooter
             SetupLaunchPosition(gridRect, _launchPosition);
             SetupCamera(gridRect, _camera);
             SetupCanvas(gridRect, _canvas, _circleDown);
-            SetupWalls(gridRect);
+            SetupWalls(gridRect, bubblePhysicalRadius);
         }
 
         private void SetupCamera(Rect gridRect, Camera camera)
@@ -64,14 +64,15 @@ namespace BubbleShooter
             launchPosition.localPosition = new Vector3(gridSize.center.x, gridSize.yMin - 0.5f);
         }
 
-        private void SetupWalls(Rect gridRect)
+        private void SetupWalls(Rect gridRect, float bubblePhysicalRadius)
         {
+            var thiknessAdditional = 1f - bubblePhysicalRadius * 2f;
             var thicknessDoubled = _wallThickness * 2f;
             var thicknessHalf = _wallThickness / 2f;
 
-            var topWall = CreateWall(gridRect.width + thicknessDoubled, _wallThickness);
-            var leftWall = CreateWall(_wallThickness, gridRect.height + thicknessDoubled);
-            var rightWall = CreateWall(_wallThickness, gridRect.height + thicknessDoubled);
+            var topWall = CreateWall(gridRect.width + thicknessDoubled, _wallThickness + thiknessAdditional);
+            var leftWall = CreateWall(_wallThickness + thiknessAdditional, gridRect.height + thicknessDoubled);
+            var rightWall = CreateWall(_wallThickness + thiknessAdditional, gridRect.height + thicknessDoubled);
 
             topWall.position = new Vector3(gridRect.center.x, gridRect.yMax + thicknessHalf);
             leftWall.position = new Vector3(gridRect.xMin - thicknessHalf, gridRect.center.y);

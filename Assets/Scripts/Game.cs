@@ -1,6 +1,7 @@
 using DG.Tweening;
 using UnityEngine;
 using BubbleShooter.HexGrids;
+using System.Collections.Generic;
 
 namespace BubbleShooter
 {
@@ -12,6 +13,7 @@ namespace BubbleShooter
         [SerializeField] private Transform _launchPosition;
         [SerializeField] private HexGridLayout _hexGridLayout;
         [SerializeField] private BubbleSpawner _bubbleSpawner;
+        [SerializeField] private BubblePhysics _bubblePhysics;
 
         [SerializeField] private InputArea _inputArea;
         [SerializeField] private GameSetuper _gameSetuper;
@@ -19,30 +21,20 @@ namespace BubbleShooter
         private HexGrid _hexGrid;
         private Sequence _sequence;
 
-        private BubblePhysics _bubblePhysics;
         private BubbleTrajectory _bubbleTrajectory;
+        private BubbleSequenceDetector _bubbleSequenceDetector;
 
         private void Start()
         {
             var bubbleLayer = LayerMask.NameToLayer("Bubble");
 
-            _gameSetuper.Setup(new Vector2Int(_columnsCount, _rowsCount), _hexGridLayout.CellSize);
+            _gameSetuper.Setup(new Vector2Int(_columnsCount, _rowsCount), _hexGridLayout.CellSize, 0.4f);
 
             _hexGrid = new HexGrid(_rowsCount, _columnsCount);
-            _bubblePhysics = new BubblePhysics(0.4f, bubbleLayer);
+            SetupGrid();
 
-            for (int row = 0; row < _rowsCount/2; row++)
-                for (int column = 0; column < _columnsCount; column++)
-                {
-                    var offsetPosition = new Vector3Int(column, row);
-                    var worldPosition = _hexGridLayout.OffsetToWorld(offsetPosition);
-
-                    var bubble = _bubbleSpawner.GetItem();
-                    bubble.transform.position = worldPosition;
-
-                    _hexGrid[row, column].Bubble = bubble;
-
-                }
+            _bubblePhysics.Setup(0.4f, bubbleLayer);
+            _bubbleSequenceDetector = new BubbleSequenceDetector(_hexGrid);
         }
 
         private void OnEnable()
@@ -53,6 +45,23 @@ namespace BubbleShooter
         private void OnDisable()
         {
             _inputArea.Clicked -= OnAreaClicked;
+        }
+
+        private void SetupGrid()
+        {
+            for (int row = 0; row < _rowsCount / 2; row++)
+            {
+                for (int column = 0; column < _columnsCount; column++)
+                {
+                    var offsetPoint = new OffsetPoint(column, row);
+                    var worldPoint = _hexGridLayout.OffsetToWorld(offsetPoint);
+
+                    var bubble = _bubbleSpawner.GetItem();
+                    bubble.transform.position = worldPoint;
+
+                    _hexGrid[row, column].Bubble = bubble;
+                }
+            }
         }
 
         private void OnAreaClicked(Vector3 clickPosition)
@@ -85,10 +94,27 @@ namespace BubbleShooter
                 _sequence.Append(bubble.transform.DOMove(point.Position, 0.2f));
             }
 
-            var offsetPosition = _hexGridLayout.WorldToOffset(trajectory.LastPoint.Position);
-            var worldPosition = _hexGridLayout.OffsetToWorld(offsetPosition);
-            _sequence.Append(bubble.transform.DOMove(worldPosition, 0.2f));
-            _sequence.OnComplete(delegate { _inputArea.enabled = true; });
+            var hexPoint = _hexGridLayout.WorldToHex(trajectory.LastPoint.Position);
+            var worldPoint = _hexGridLayout.HexToWorld(hexPoint);
+
+            _sequence.Append(bubble.transform.DOMove(worldPoint, 0.2f));
+            _sequence.OnComplete(delegate
+            {
+                _hexGrid[hexPoint].Bubble = bubble;
+                if (_bubbleSequenceDetector.TryGetSequence(hexPoint, out var bubbleSequence))
+                    PopBubbles(bubbleSequence);
+
+                _inputArea.enabled = true; 
+            });
+        }
+
+        private void PopBubbles(IEnumerable<(HexPoint, Bubble)> bubbleSequence)
+        {
+            foreach (var element in bubbleSequence)
+            {
+                _hexGrid[element.Item1].Bubble = null;
+                _bubbleSpawner.ReleaseItem(element.Item2);
+            }
         }
 
         private void OnDrawGizmos()
@@ -100,7 +126,7 @@ namespace BubbleShooter
             foreach (var point in _bubbleTrajectory)
             {
                 Gizmos.color = Color.cyan;
-                Gizmos.DrawWireSphere(point.Position, 0.4f);
+                Gizmos.DrawWireSphere(point.Position, 0.32f);
                 Gizmos.DrawLine(previousPosition, point.Position);
                 
                 Gizmos.color = Color.blue;

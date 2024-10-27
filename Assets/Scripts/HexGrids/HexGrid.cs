@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-
-namespace BubbleShooter.HexGrids
+﻿namespace BubbleShooter.HexGrids
 {
     public class HexGrid
     {
@@ -11,7 +9,8 @@ namespace BubbleShooter.HexGrids
         public int RowCount => _rowCount;
         public int ColumnCount => _columnCount;
         public HexGridCell this[int row, int column] => _gridCells[row, column];
-        public HexGridCell this[Vector3Int offsetPosition] => _gridCells[offsetPosition.y, offsetPosition.x];
+        public HexGridCell this[OffsetPoint offsetPoint] => this[offsetPoint.row, offsetPoint.column];
+        public HexGridCell this[HexPoint hexPoint] => this[HexPoints.HexToOffset(hexPoint, HexCellLayoutOffset.OddRows)];
 
         public HexGrid(int rowCount, int columnCount)
         {
@@ -24,7 +23,7 @@ namespace BubbleShooter.HexGrids
                     _gridCells[row, column] = new HexGridCell();
         }
 
-        public bool IsPositionInBounds(int row, int column)
+        public bool IsPointInBounds(int row, int column)
         {
             return row >= 0
                 && column >= 0
@@ -32,9 +31,14 @@ namespace BubbleShooter.HexGrids
                 && column < _columnCount;
         }
 
-        public bool IsPositionInBounds(Vector3Int offsetPosition)
+        public bool IsPointInBounds(OffsetPoint offsetPoint)
         {
-            return IsPositionInBounds(offsetPosition.y, offsetPosition.x);
+            return IsPointInBounds(offsetPoint.row, offsetPoint.column);
+        }
+
+        public bool IsPointInBounds(HexPoint hexPoint)
+        {
+            return IsPointInBounds(HexPoints.HexToOffset(hexPoint, HexCellLayoutOffset.OddRows));
         }
     }
 }
