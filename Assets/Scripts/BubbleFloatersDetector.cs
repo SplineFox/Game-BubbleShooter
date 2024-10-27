@@ -1,6 +1,5 @@
 ﻿using BubbleShooter.HexGrids;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace BubbleShooter
 {
@@ -9,8 +8,8 @@ namespace BubbleShooter
         private HexGrid _hexGrid;
 
         private HashSet<HexPoint> _visitedPoints;
-        private Queue<HexPoint> _searchPoints;
-        private List<(HexPoint, Bubble)> _sequence;
+        private Stack<HexPoint> _searchPoints;
+        private List<(HexPoint, Bubble)> _floaters;
 
         private List<HexPoint> _searchDirections = new()
         {
@@ -27,36 +26,35 @@ namespace BubbleShooter
             _hexGrid = hexGrid;
             _visitedPoints = new();
             _searchPoints = new();
-            _sequence = new();
+            _floaters = new();
         }
 
-        public bool TryGetFloaters(HexPoint hexPoint, out IEnumerable<(HexPoint, Bubble)> floaters)
+        public bool TryGetFloaters(out IEnumerable<(HexPoint, Bubble)> floaters)
         {
-            if (!_hexGrid.IsPointInBounds(hexPoint) || _hexGrid[hexPoint].Bubble == null)
-            {
-                floaters = null;
-                return false;
-            }
-
-            var bubble = _hexGrid[hexPoint].Bubble;
-
             _visitedPoints.Clear();
             _searchPoints.Clear();
-            _sequence.Clear();
+            _floaters.Clear();
 
-            _visitedPoints.Add(hexPoint);
-            _searchPoints.Enqueue(hexPoint);
-            _sequence.Add((hexPoint, bubble));
+            for (int column = 0; column < _hexGrid.ColumnCount; column++)
+            {
+                var offsetPoint = new OffsetPoint(column, 0);
+                var hexPoint = HexPoints.OffsetToHex(offsetPoint, HexCellLayoutOffset.OddRows);
+                _searchPoints.Push(hexPoint);
+            }
 
-            while (_searchPoints.TryDequeue(out var searchPoint))
-                ProcessSearchPoint(searchPoint, bubble.TypeId);
+            while (_searchPoints.TryPop(out var searchPoint))
+                ProcessSearchPoint(searchPoint);
 
-            floaters = _sequence;
-            return _sequence.Count() > 2;
+            FindFloaters();
+
+            floaters = _floaters;
+            return _floaters.Count > 0;
         }
 
-        private void ProcessSearchPoint(HexPoint hexPoint, int bubbleTypeId)
+        private void ProcessSearchPoint(HexPoint hexPoint)
         {
+            _visitedPoints.Add(hexPoint);
+
             foreach (var hexDirection in _searchDirections)
             {
                 var nextHexPoint = hexPoint.Add(hexDirection);
@@ -66,13 +64,33 @@ namespace BubbleShooter
                 if (!_hexGrid.IsPointInBounds(nextHexPoint))
                     continue;
 
-                var nextBubble = _hexGrid[nextHexPoint].Bubble;
-                if (nextBubble == null || nextBubble.TypeId != bubbleTypeId)
+                if (_hexGrid[nextHexPoint].Bubble == null)
+                {
+                    _visitedPoints.Add(nextHexPoint);
                     continue;
+                }
 
-                _visitedPoints.Add(nextHexPoint);
-                _searchPoints.Enqueue(nextHexPoint);
-                _sequence.Add((nextHexPoint, nextBubble));
+                _searchPoints.Push(nextHexPoint);
+            }
+        }
+
+        private void FindFloaters()
+        {
+            for (int row = 0; row < _hexGrid.RowCount; row++)
+            {
+                for (int column = 0; column < _hexGrid.ColumnCount; column++)
+                {
+                    var offsetPoint = new OffsetPoint(column, row);
+                    var hexPoint = HexPoints.OffsetToHex(offsetPoint, HexCellLayoutOffset.OddRows);
+                    
+                    if (_visitedPoints.Contains(hexPoint))
+                        continue;
+
+                    var bubble = _hexGrid[row, column].Bubble;
+
+                    if (bubble != null)
+                        _floaters.Add((hexPoint, bubble));
+                }
             }
         }
     }

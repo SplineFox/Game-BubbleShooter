@@ -81,11 +81,15 @@ namespace BubbleShooter
 
         private void ProcessBubble(HexPoint hexPoint)
         {
-            if (_bubbleSequenceDetector.TryGetSequence(hexPoint, out var bubbleSequence))
+            if (_bubbleSequenceDetector.TryGetSequence(hexPoint, out var sequence))
             {
-                PopBubbles(bubbleSequence);
+                PopBubbles(sequence);
+
+                if (_bubbleFloatersDetector.TryGetFloaters(out var floaters))
+                    DropBubbles(floaters);
             }
 
+            return;
             if (IsMovePossible())
             {
                 MoveBubblesDown();
@@ -96,13 +100,35 @@ namespace BubbleShooter
             }
         }
 
-        private void PopBubbles(IEnumerable<(HexPoint, Bubble)> bubbleSequence)
+        private void PopBubbles(IEnumerable<(HexPoint, Bubble)> sequence)
         {
-            foreach (var element in bubbleSequence)
+            foreach (var element in sequence)
             {
-                _bubbleAnimator.AnimateBubblePop(element.Item2);
+                var bubble = element.Item2;
+                bubble.SetColliderEnable(false);
+
+                _bubbleAnimator.AnimateBubblePop(bubble);
                 _hexGrid[element.Item1].Bubble = null;
-                _bubbleSpawner.ReleaseItem(element.Item2);
+                _bubbleSpawner.ReleaseItem(bubble);
+            }
+        }
+
+        private void DropBubbles(IEnumerable<(HexPoint, Bubble)> floaters)
+        {
+            foreach (var element in floaters)
+            {
+                var bubble = element.Item2;
+                bubble.SetColliderEnable(false);
+
+                var offsetPoint = HexPoints.HexToOffset(element.Item1, HexCellLayoutOffset.OddRows);
+                var offsetDropPoint = new OffsetPoint(offsetPoint.column, _hexGrid.RowCount);
+                var worldPoint = _hexGridLayout.OffsetToWorld(offsetDropPoint);
+
+                _hexGrid[element.Item1].Bubble = null;
+                _bubbleAnimator.AnimaterBubbleDrop(bubble, worldPoint, () =>
+                {
+                    _bubbleSpawner.ReleaseItem(bubble);
+                });
             }
         }
 

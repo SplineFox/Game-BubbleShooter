@@ -10,6 +10,7 @@ public class BubbleAnimator : MonoBehaviour
     [SerializeField] private EffectSpawner _effectSpawner;
     [SerializeField] private float _spawnDuration = 0.4f;
     [SerializeField] private float _moveDuration = 0.2f;
+    [SerializeField] private float _dropDuration = 1f;
 
     private Sequence _sequence;
 
@@ -56,6 +57,19 @@ public class BubbleAnimator : MonoBehaviour
     public void AnimaterBubbleMove(Bubble bubble, Vector3 worldPoint)
     {
         bubble.DOKill();
-        bubble.transform.DOMove(worldPoint, _moveDuration);
+        bubble.transform.DOMove(worldPoint, _moveDuration)
+            .SetEase(Ease.Linear);
+    }
+
+    public void AnimaterBubbleDrop(Bubble bubble, Vector3 worldPoint, Action onComplete)
+    {
+        bubble.DOKill();
+        bubble.transform.DOMove(worldPoint, _dropDuration)
+            .SetEase(Ease.InBack)
+            .OnComplete(() => 
+            {
+                AnimateBubblePop(bubble);
+                onComplete?.Invoke();
+            });
     }
 }
