@@ -86,14 +86,14 @@ namespace BubbleShooter
                 PopBubbles(bubbleSequence);
             }
 
-            //if (IsMovePossible())
-            //{
-            //    MoveBubblesDown();
-            //}
-            //else
-            //{
-            //    Debug.Log("Move not possible");
-            //}
+            if (IsMovePossible())
+            {
+                MoveBubblesDown();
+            }
+            else
+            {
+                Debug.Log("Move not possible");
+            }
         }
 
         private void PopBubbles(IEnumerable<(HexPoint, Bubble)> bubbleSequence)
@@ -131,9 +131,9 @@ namespace BubbleShooter
                         var nextOffsetPoint = new OffsetPoint(column, nextRow);
                         var worldPoint = _hexGridLayout.OffsetToWorld(nextOffsetPoint);
 
-                        bubble.transform.position = worldPoint;
                         _hexGrid[nextRow, column].Bubble = bubble;
                         _hexGrid[row, column].Bubble = null;
+                        _bubbleAnimator.AnimaterBubbleMove(bubble, worldPoint);
                     }
                 }
             }

@@ -9,6 +9,7 @@ public class BubbleAnimator : MonoBehaviour
     [SerializeField] private HexGridLayout _hexGridLayout;
     [SerializeField] private EffectSpawner _effectSpawner;
     [SerializeField] private float _spawnDuration = 0.4f;
+    [SerializeField] private float _moveDuration = 0.2f;
 
     private Sequence _sequence;
 
@@ -50,5 +51,11 @@ public class BubbleAnimator : MonoBehaviour
         bubble.transform.localScale = Vector3.zero;
         bubble.transform.DOScale(Vector3.one, _spawnDuration)
             .SetEase(Ease.OutBack);
+    }
+
+    public void AnimaterBubbleMove(Bubble bubble, Vector3 worldPoint)
+    {
+        bubble.DOKill();
+        bubble.transform.DOMove(worldPoint, _moveDuration);
     }
 }
