@@ -378,6 +378,7 @@ MonoBehaviour:
   _launchPosition: {fileID: 1580818676}
   _hexGridLayout: {fileID: 836836582}
   _bubbleSpawner: {fileID: 1626152589}
+  _bubbleAnimator: {fileID: 1990488148}
   _bubblePhysics: {fileID: 763731889}
   _inputArea: {fileID: 614810683}
   _gameSetuper: {fileID: 763731888}
@@ -673,6 +674,59 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1099322363}
   m_CullTransparentMesh: 1
+--- !u!1 &1239108636
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1239108638}
+  - component: {fileID: 1239108637}
+  m_Layer: 0
+  m_Name: EffectSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1239108637
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1239108636}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0d03d8d55081ed44851636f86b2a66c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _defaultCapacity: 8
+  _maxCapacity: 16
+  _prefab: {fileID: 257303494346966759, guid: 7a0f5e20265cc9e4c9aa7026b4dd25ad, type: 3}
+  _colors:
+  - {r: 0.37647063, g: 0.7490196, b: 0.97647065, a: 1}
+  - {r: 0.6117647, g: 0.77647066, b: 0.52156866, a: 1}
+  - {r: 0.9490197, g: 0.7137255, b: 0.3921569, a: 1}
+  - {r: 0.854902, g: 0.5019608, b: 0.6392157, a: 1}
+  - {r: 0.6392157, g: 0.43529415, b: 0.82745105, a: 1}
+--- !u!4 &1239108638
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1239108636}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1445322535
 GameObject:
   m_ObjectHideFlags: 0
@@ -1209,7 +1263,7 @@ Transform:
   m_GameObject: {fileID: 1870331741}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalPosition: {x: 0, y: 0, z: -100}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1311,13 +1365,62 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1910753183}
   m_CullTransparentMesh: 1
+--- !u!1 &1990488147
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1990488149}
+  - component: {fileID: 1990488148}
+  m_Layer: 0
+  m_Name: BubbleAnimator
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1990488148
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1990488147}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 311d1e92ffd4c4e4cad63ee6fae2a559, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _hexGridLayout: {fileID: 836836582}
+  _effectSpawner: {fileID: 1239108637}
+  _spawnDuration: 0.4
+--- !u!4 &1990488149
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1990488147}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 1870331744}
   - {fileID: 763731887}
+  - {fileID: 1239108638}
   - {fileID: 1626152590}
+  - {fileID: 1990488149}
   - {fileID: 836836580}
   - {fileID: 1445322540}
   - {fileID: 1482723785}

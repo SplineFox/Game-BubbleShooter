@@ -1,4 +1,3 @@
-using DG.Tweening;
 using UnityEngine;
 using BubbleShooter.HexGrids;
 using System.Collections.Generic;
@@ -13,16 +12,17 @@ namespace BubbleShooter
         [SerializeField] private Transform _launchPosition;
         [SerializeField] private HexGridLayout _hexGridLayout;
         [SerializeField] private BubbleSpawner _bubbleSpawner;
+        [SerializeField] private BubbleAnimator _bubbleAnimator;
         [SerializeField] private BubblePhysics _bubblePhysics;
 
         [SerializeField] private InputArea _inputArea;
         [SerializeField] private GameSetuper _gameSetuper;
 
         private HexGrid _hexGrid;
-        private Sequence _sequence;
 
         private BubbleTrajectory _bubbleTrajectory;
         private BubbleSequenceDetector _bubbleSequenceDetector;
+        private BubbleFloatersDetector _bubbleFloatersDetector;
 
         private void Start()
         {
@@ -35,6 +35,7 @@ namespace BubbleShooter
 
             _bubblePhysics.Setup(0.4f, bubbleLayer);
             _bubbleSequenceDetector = new BubbleSequenceDetector(_hexGrid);
+            _bubbleFloatersDetector = new BubbleFloatersDetector(_hexGrid);
         }
 
         private void OnEnable()
@@ -51,69 +52,106 @@ namespace BubbleShooter
         {
             for (int row = 0; row < _rowsCount / 2; row++)
             {
-                for (int column = 0; column < _columnsCount; column++)
-                {
-                    var offsetPoint = new OffsetPoint(column, row);
-                    var worldPoint = _hexGridLayout.OffsetToWorld(offsetPoint);
-
-                    var bubble = _bubbleSpawner.GetItem();
-                    bubble.transform.position = worldPoint;
-
-                    _hexGrid[row, column].Bubble = bubble;
-                }
+                SpawnBubblesLine(row);
             }
         }
 
         private void OnAreaClicked(Vector3 clickPosition)
         {
-            _inputArea.enabled = false;
             var direction = (clickPosition - _launchPosition.position).normalized;
 
             _bubbleTrajectory = _bubblePhysics.FindTrajectory(_launchPosition.position, direction);
             var bubble = _bubbleSpawner.GetItem();
 
-            AnimateBubble(bubble, _bubbleTrajectory);
+            LaunchBubble(bubble, _bubbleTrajectory);
         }
 
-        private void AnimateBubble(Bubble bubble, BubbleTrajectory trajectory)
+        private void LaunchBubble(Bubble bubble, BubbleTrajectory trajectory)
         {
-            bubble.transform.position = trajectory.FirstPoint.Position;
-
-            _sequence?.Kill();
-            _sequence = DOTween.Sequence();
-
-            var isFirst = true;
-            foreach (var point in trajectory)
-            {
-                if (isFirst)
-                {
-                    isFirst = false;
-                    continue;
-                }
-
-                _sequence.Append(bubble.transform.DOMove(point.Position, 0.2f));
-            }
-
+            _inputArea.enabled = false;
             var hexPoint = _hexGridLayout.WorldToHex(trajectory.LastPoint.Position);
-            var worldPoint = _hexGridLayout.HexToWorld(hexPoint);
 
-            _sequence.Append(bubble.transform.DOMove(worldPoint, 0.2f));
-            _sequence.OnComplete(delegate
+            _bubbleAnimator.AnimateBubbleMove(bubble, trajectory, delegate
             {
                 _hexGrid[hexPoint].Bubble = bubble;
-                if (_bubbleSequenceDetector.TryGetSequence(hexPoint, out var bubbleSequence))
-                    PopBubbles(bubbleSequence);
-
-                _inputArea.enabled = true; 
+                ProcessBubble(hexPoint);
+                _inputArea.enabled = true;
             });
+        }
+
+        private void ProcessBubble(HexPoint hexPoint)
+        {
+            if (_bubbleSequenceDetector.TryGetSequence(hexPoint, out var bubbleSequence))
+            {
+                PopBubbles(bubbleSequence);
+            }
+
+            //if (IsMovePossible())
+            //{
+            //    MoveBubblesDown();
+            //}
+            //else
+            //{
+            //    Debug.Log("Move not possible");
+            //}
         }
 
         private void PopBubbles(IEnumerable<(HexPoint, Bubble)> bubbleSequence)
         {
             foreach (var element in bubbleSequence)
             {
+                _bubbleAnimator.AnimateBubblePop(element.Item2);
                 _hexGrid[element.Item1].Bubble = null;
                 _bubbleSpawner.ReleaseItem(element.Item2);
+            }
+        }
+
+        private bool IsMovePossible()
+        {
+            var lastRowIndex = _hexGrid.RowCount - 1;
+            for (int column = 0; column < _hexGrid.ColumnCount; column++)
+            {
+                if (_hexGrid[lastRowIndex, column].Bubble != null)
+                    return false;
+            }
+
+            return true;
+        }
+
+        private void MoveBubblesDown()
+        {
+            for (int row = _rowsCount - 2; row >= 0; row--)
+            {
+                for (int column = 0; column < _columnsCount; column++)
+                {
+                    var bubble = _hexGrid[row, column].Bubble;
+                    if (bubble != null)
+                    {
+                        var nextRow = row + 1;
+                        var nextOffsetPoint = new OffsetPoint(column, nextRow);
+                        var worldPoint = _hexGridLayout.OffsetToWorld(nextOffsetPoint);
+
+                        bubble.transform.position = worldPoint;
+                        _hexGrid[nextRow, column].Bubble = bubble;
+                        _hexGrid[row, column].Bubble = null;
+                    }
+                }
+            }
+            SpawnBubblesLine(0);
+        }
+
+        private void SpawnBubblesLine(int row)
+        {
+            for (int column = 0; column < _columnsCount; column++)
+            {
+                var offsetPoint = new OffsetPoint(column, row);
+                var worldPoint = _hexGridLayout.OffsetToWorld(offsetPoint);
+
+                var bubble = _bubbleSpawner.GetItem();
+                bubble.transform.position = worldPoint;
+
+                _hexGrid[row, column].Bubble = bubble;
+                _bubbleAnimator.AnimateBubbleSpawn(bubble);
             }
         }
 

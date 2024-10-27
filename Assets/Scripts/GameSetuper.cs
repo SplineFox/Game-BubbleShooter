@@ -36,7 +36,7 @@ namespace BubbleShooter
 
             camera.orthographic = true;
             camera.orthographicSize = (gridRect.width + _offset * 2f) * screenRatio * 0.5f;
-            camera.transform.position = gridRect.center;
+            camera.transform.position = new Vector3(gridRect.center.x, gridRect.center.y, -100);
         }
 
         public void SetupCanvas(Rect gridRect, Canvas canvas, RectTransform circleDown)
