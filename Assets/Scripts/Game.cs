@@ -32,6 +32,7 @@ namespace BubbleShooter
         [SerializeField] private BubbleSpawner _bubbleSpawner;
         [SerializeField] private BubbleAnimator _bubbleAnimator;
         [SerializeField] private BubblePhysics _bubblePhysics;
+        [SerializeField] private SoundManager _soundManager;
 
         [SerializeField] private InputArea _inputArea;
         [SerializeField] private GameSetuper _gameSetuper;
@@ -155,6 +156,7 @@ namespace BubbleShooter
             var worldPoint = _hexGridLayout.HexToWorld(hexPoint);
             var sequence = _bubbleAnimator.CreateBubbleFlightSequence(_bubbleToLaunch, trajectory, worldPoint);
 
+            _soundManager.PlayBubbleLauch();
             await PlaySequenceAsync(sequence);
 
             _hexGrid[hexPoint].Bubble = _bubbleToLaunch;
@@ -176,14 +178,15 @@ namespace BubbleShooter
         
                 if (_bubbleFloatersDetector.TryGetFloaters(out var floaters))
                 {
-                    await DropBubblesAsync(floaters);
+                    DropBubbles(floaters);
                     _score += CalculateScorePoints(floaters.Count(), true);
                 }
         
                 _scoreView.SetValue(_score);
                 return;
             }
-        
+
+            _soundManager.PlayBubbleStop();
             if (!TryAddFoul())
             {
                 if (IsMovePossible())
@@ -191,7 +194,7 @@ namespace BubbleShooter
                     await MoveBubblesDownAsync();
         
                     if (_bubbleFloatersDetector.TryGetFloaters(out var floaters))
-                        await DropBubblesAsync(floaters);
+                        DropBubbles(floaters);
         
                     return;
                 }
@@ -215,19 +218,21 @@ namespace BubbleShooter
                     var bubble = element.Item2;
                     bubble.SetColliderEnable(false);
 
+                    _soundManager.PlayBubblePop();
                     _effectSpawner.Spawn(bubble.transform.position, bubble.TypeId).Play();
-                    _hexGrid[element.Item1].Bubble = null;
                     _bubbleSpawner.ReleaseItem(bubble);
+                    _hexGrid[element.Item1].Bubble = null;
                 });
             }
 
             await PlaySequenceAsync(sequence);
         }
 
-        private async Task DropBubblesAsync(IEnumerable<(HexPoint, Bubble)> collection)
+        private void DropBubbles(IEnumerable<(HexPoint, Bubble)> collection)
         {
             var sequence = DOTween.Sequence();
 
+            var interval = 0f;
             foreach (var element in collection)
             {
                 var bubble = element.Item2;
@@ -237,17 +242,19 @@ namespace BubbleShooter
                 var offsetDropPoint = new OffsetPoint(offsetPoint.column, _hexGrid.RowCount);
                 var worldPoint = _hexGridLayout.OffsetToWorld(offsetDropPoint);
 
-                _hexGrid[element.Item1].Bubble = null;
                 var tween = _bubbleAnimator.CreateBubbleDropTween(bubble, worldPoint).OnComplete(() =>
                 {
+                    _soundManager.PlayBubblePop();
                     _effectSpawner.Spawn(bubble.transform.position, bubble.TypeId).Play();
                     _bubbleSpawner.ReleaseItem(bubble);
+                    _hexGrid[element.Item1].Bubble = null;
                 });
                 
-                sequence.Insert(0, tween);
+                sequence.Insert(interval, tween);
+                interval += 0.05f;
             }
 
-            await PlaySequenceAsync(sequence);
+            PlaySequenceAsync(sequence);
         }
 
         private bool IsMovePossible()
