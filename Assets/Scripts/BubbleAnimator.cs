@@ -3,29 +3,42 @@ using DG.Tweening;
 using UnityEngine;
 using BubbleShooter;
 using BubbleShooter.HexGrids;
-using Random = UnityEngine.Random;
 
 public class BubbleAnimator : MonoBehaviour
 {
+    [SerializeField] private float _moveDistancePerSecond = 35f;
+    [SerializeField] private float _dropDistancePerSecond = 15f;
+
     [SerializeField] private float _spawnDuration = 0.4f;
     [SerializeField] private float _moveDuration = 0.2f;
-    [SerializeField] private float _dropDurationMin = 0.5f;
-    [SerializeField] private float _dropDurationMax = 1f;
 
     public float MoveDuration => _moveDuration;
 
     public Sequence CreateBubbleFlightSequence(Bubble bubble, BubbleTrajectory trajectory, Vector3 worldPoint)
     {
+        var sequence = DOTween.Sequence();
+
+        var distance = 0f;
+        var duration = 0f;
+        var previousPosition = trajectory.FirstPoint.Position;
+
         bubble.transform.position = trajectory.FirstPoint.Position;
 
-        var sequence = DOTween.Sequence();
-        
-        for (int index = 1; index < trajectory.Points.Count; index++)
+        for (int index = 1; index < trajectory.Points.Count - 1; index++)
         {
             var point = trajectory.Points[index];
-            sequence.Append(bubble.transform.DOMove(point.Position, 0.2f));
+            
+            distance = Vector2.Distance(previousPosition, point.Position);
+            duration = distance / _moveDistancePerSecond;
+
+            sequence.Append(bubble.transform.DOMove(point.Position, duration).SetEase(Ease.Linear));
+            previousPosition = point.Position;
         }
-        sequence.Append(bubble.transform.DOMove(worldPoint, 0.1f));
+
+        distance = Vector2.Distance(previousPosition, trajectory.LastPoint.Position);
+        duration = distance / _moveDistancePerSecond;
+        sequence.Append(bubble.transform.DOMove(worldPoint, duration).SetEase(Ease.Linear));
+        sequence.Append(bubble.transform.DOScale(0.75f, 0.075f).SetLoops(2, LoopType.Yoyo));
 
         return sequence;
     }
@@ -57,9 +70,10 @@ public class BubbleAnimator : MonoBehaviour
     {
         bubble.DOKill();
 
-        var dropDuration = Random.Range(_dropDurationMin, _dropDurationMax);
+        var distance = Vector2.Distance(bubble.transform.position, worldPoint);
+        var duration = distance / _dropDistancePerSecond;
         var tween = bubble.transform
-            .DOMove(worldPoint, dropDuration)
+            .DOMove(worldPoint, duration)
             .SetEase(Ease.InBack);
 
         return tween;
