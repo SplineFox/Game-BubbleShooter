@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using DG.Tweening;
 using UnityEngine;
@@ -8,7 +7,6 @@ using Random = UnityEngine.Random;
 
 public class BubbleAnimator : MonoBehaviour
 {
-    [SerializeField] private HexGridLayout _hexGridLayout;
     [SerializeField] private float _spawnDuration = 0.4f;
     [SerializeField] private float _moveDuration = 0.2f;
     [SerializeField] private float _dropDurationMin = 0.5f;
@@ -16,50 +14,54 @@ public class BubbleAnimator : MonoBehaviour
 
     public float MoveDuration => _moveDuration;
 
-    private Sequence _sequence;
-
-    public void AnimateBubbleMove(Bubble bubble, BubbleTrajectory trajectory, Action onComplete)
+    public Sequence CreateBubbleFlightSequence(Bubble bubble, BubbleTrajectory trajectory, Vector3 worldPoint)
     {
         bubble.transform.position = trajectory.FirstPoint.Position;
 
-        _sequence?.Kill();
-        _sequence = DOTween.Sequence();
-
+        var sequence = DOTween.Sequence();
+        
         for (int index = 1; index < trajectory.Points.Count; index++)
         {
             var point = trajectory.Points[index];
-            _sequence.Append(bubble.transform.DOMove(point.Position, 0.2f));
+            sequence.Append(bubble.transform.DOMove(point.Position, 0.2f));
         }
+        sequence.Append(bubble.transform.DOMove(worldPoint, 0.1f));
 
-        var hexPoint = _hexGridLayout.WorldToHex(trajectory.LastPoint.Position);
-        var worldPoint = _hexGridLayout.HexToWorld(hexPoint);
-
-        _sequence.Append(bubble.transform.DOMove(worldPoint, 0.1f));
-        _sequence.OnComplete(() => onComplete?.Invoke());
+        return sequence;
     }
 
-    public void AnimateBubbleSpawn(Bubble bubble)
+    public Tween CreateBubbleSpawnTween(Bubble bubble)
     {
         bubble.DOKill();
         bubble.transform.localScale = Vector3.zero;
-        bubble.transform.DOScale(Vector3.one, _spawnDuration)
+        
+        var tween = bubble.transform
+            .DOScale(Vector3.one, _spawnDuration)
             .SetEase(Ease.OutBack);
+
+        return tween;
     }
 
-    public void AnimaterBubbleMove(Bubble bubble, Vector3 worldPoint)
+    public Tween CreateBubbleMoveTween(Bubble bubble, Vector3 worldPoint)
     {
         bubble.DOKill();
-        bubble.transform.DOMove(worldPoint, _moveDuration)
+
+        var tween = bubble.transform
+            .DOMove(worldPoint, _moveDuration)
             .SetEase(Ease.Linear);
+
+        return tween;
     }
 
-    public void AnimaterBubbleDrop(Bubble bubble, Vector3 worldPoint, Action onComplete)
+    public Tween CreateBubbleDropTween(Bubble bubble, Vector3 worldPoint)
     {
-        var dropDuration = Random.Range(_dropDurationMin, _dropDurationMax);
-
         bubble.DOKill();
-        bubble.transform.DOMove(worldPoint, dropDuration)
-            .OnComplete(() => onComplete?.Invoke())
+
+        var dropDuration = Random.Range(_dropDurationMin, _dropDurationMax);
+        var tween = bubble.transform
+            .DOMove(worldPoint, dropDuration)
             .SetEase(Ease.InBack);
+
+        return tween;
     }
 }

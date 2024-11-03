@@ -1,10 +1,10 @@
-using UnityEngine;
-using BubbleShooter.HexGrids;
-using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
-using System;
+using BubbleShooter.HexGrids;
+using DG.Tweening;
 
 namespace BubbleShooter
 {
@@ -41,7 +41,7 @@ namespace BubbleShooter
         private int _foulsCount;
         private int _score;
 
-        private Bubble _currentBubble;
+        private Bubble _bubbleToLaunch;
         private BubbleTrajectory _bubbleTrajectory;
         private BubbleSequenceDetector _bubbleSequenceDetector;
         private BubbleFloatersDetector _bubbleFloatersDetector;
@@ -70,6 +70,16 @@ namespace BubbleShooter
             _inputArea.Clicked -= OnAreaClicked;
         }
 
+        private void EnableInput()
+        {
+            _inputArea.enabled = true;
+        }
+
+        private void DisableInput()
+        {
+            _inputArea.enabled = false;
+        }
+
         public void Restart()
         {
             _score = 0;
@@ -80,8 +90,17 @@ namespace BubbleShooter
             _foulsView.SetValue(_foulsCount);
 
             ClearGrid();
-            SetupGrid();
+            ReloadGrid();
+            ReloadBubble();
             EnableInput();
+        }
+
+        private void ReloadGrid()
+        {
+            for (int row = 0; row < _rowsCount / 2; row++)
+            {
+                SpawnBubblesLineAsync(row);
+            }
         }
 
         private void ClearGrid()
@@ -100,91 +119,80 @@ namespace BubbleShooter
             }
         }
 
-        private void SetupGrid()
+        private void OnAreaClicked(Vector3 clickPosition)
         {
-            for (int row = 0; row < _rowsCount / 2; row++)
-            {
-                SpawnBubblesLine(row);
-            }
+            var direction = (clickPosition - _launchPosition.position).normalized;
+
+            LaunchBubble(direction);
         }
 
-        private void SetupBubble()
+        private void ReloadBubble()
         {
-            if (_currentBubble != null)
-                _bubbleSpawner.ReleaseItem(_currentBubble);
+            if (_bubbleToLaunch != null)
+                _bubbleSpawner.ReleaseItem(_bubbleToLaunch);
 
-            _currentBubble = _bubbleSpawner.GetItem();
-            _currentBubble.transform.position = _launchPosition.position;
-            _currentBubble.SetColliderEnable(false);
+            _bubbleToLaunch = _bubbleSpawner.GetItem();
+            _bubbleToLaunch.transform.position = _launchPosition.position;
 
             _nextBubbleImage.sprite = _bubbleSpawner.NextSprite;
         }
 
-        private void OnAreaClicked(Vector3 clickPosition)
+        private async void LaunchBubble(Vector3 direction)
         {
-            var direction = (clickPosition - _launchPosition.position).normalized;
-            _bubbleTrajectory = _bubblePhysics.FindTrajectory(_launchPosition.position, direction);
-
             DisableInput();
-            LaunchBubble(_currentBubble, _bubbleTrajectory);
-            _currentBubble.SetColliderEnable(true);
-            _currentBubble = null;
-        }
+            
+            _bubbleToLaunch.SetColliderEnable(false);
 
-        private void EnableInput()
-        {
-            _inputArea.enabled = true;
-            SetupBubble();
-        }
-
-        private void DisableInput()
-        {
-            _inputArea.enabled = false;
-        }
-
-        private void LaunchBubble(Bubble bubble, BubbleTrajectory trajectory)
-        {
+            var trajectory = _bubblePhysics.FindTrajectory(_launchPosition.position, direction);
             var hexPoint = _hexGridLayout.WorldToHex(trajectory.LastPoint.Position);
+            
             if (!_hexGrid.IsPointInBounds(hexPoint))
             {
-                _bubbleSpawner.ReleaseItem(bubble);
+                Restart();
                 return;
             }
 
-            _bubbleAnimator.AnimateBubbleMove(bubble, trajectory, () =>
-            {
-                _hexGrid[hexPoint].Bubble = bubble;
-                ProcessBubble(hexPoint);
-            });
+            var worldPoint = _hexGridLayout.HexToWorld(hexPoint);
+            var sequence = _bubbleAnimator.CreateBubbleFlightSequence(_bubbleToLaunch, trajectory, worldPoint);
+
+            await PlaySequenceAsync(sequence);
+
+            _hexGrid[hexPoint].Bubble = _bubbleToLaunch;
+            _bubbleToLaunch.SetColliderEnable(true);
+            _bubbleToLaunch = null;
+
+            await ProcessBubbleAsync(hexPoint);
+
+            ReloadBubble();
+            EnableInput();
         }
 
-        private void ProcessBubble(HexPoint hexPoint)
+        private async Task ProcessBubbleAsync(HexPoint hexPoint)
         {
             if (_bubbleSequenceDetector.TryGetSequence(hexPoint, out var sequence))
             {
-                PopBubbles(sequence);
+                await PopBubblesAsync(sequence);
                 _score += CalculateScorePoints(sequence.Count(), false);
-
+        
                 if (_bubbleFloatersDetector.TryGetFloaters(out var floaters))
                 {
-                    DropBubbles(floaters);
-                    _score += CalculateScorePoints(sequence.Count(), true);
+                    await DropBubblesAsync(floaters);
+                    _score += CalculateScorePoints(floaters.Count(), true);
                 }
-
+        
                 _scoreView.SetValue(_score);
-                EnableInput();
                 return;
             }
-
+        
             if (!TryAddFoul())
             {
                 if (IsMovePossible())
                 {
-                    StartCoroutine(MoveBubblesDown(() => EnableInput()));
-
+                    await MoveBubblesDownAsync();
+        
                     if (_bubbleFloatersDetector.TryGetFloaters(out var floaters))
-                        DropBubbles(floaters);
-
+                        await DropBubblesAsync(floaters);
+        
                     return;
                 }
                 else
@@ -193,25 +201,34 @@ namespace BubbleShooter
                     return;
                 }
             }
-            EnableInput();
         }
 
-        private void PopBubbles(IEnumerable<(HexPoint, Bubble)> sequence)
+        private async Task PopBubblesAsync(IEnumerable<(HexPoint, Bubble)> collection)
         {
-            foreach (var element in sequence)
+            var sequence = DOTween.Sequence();
+
+            foreach (var element in collection)
             {
-                var bubble = element.Item2;
-                bubble.SetColliderEnable(false);
+                sequence.AppendInterval(0.025f);
+                sequence.AppendCallback(() =>
+                {
+                    var bubble = element.Item2;
+                    bubble.SetColliderEnable(false);
 
-                _effectSpawner.Spawn(bubble.transform.position, bubble.TypeId).Play();
-                _hexGrid[element.Item1].Bubble = null;
-                _bubbleSpawner.ReleaseItem(bubble);
+                    _effectSpawner.Spawn(bubble.transform.position, bubble.TypeId).Play();
+                    _hexGrid[element.Item1].Bubble = null;
+                    _bubbleSpawner.ReleaseItem(bubble);
+                });
             }
+
+            await PlaySequenceAsync(sequence);
         }
 
-        private void DropBubbles(IEnumerable<(HexPoint, Bubble)> floaters)
+        private async Task DropBubblesAsync(IEnumerable<(HexPoint, Bubble)> collection)
         {
-            foreach (var element in floaters)
+            var sequence = DOTween.Sequence();
+
+            foreach (var element in collection)
             {
                 var bubble = element.Item2;
                 bubble.SetColliderEnable(false);
@@ -221,12 +238,16 @@ namespace BubbleShooter
                 var worldPoint = _hexGridLayout.OffsetToWorld(offsetDropPoint);
 
                 _hexGrid[element.Item1].Bubble = null;
-                _bubbleAnimator.AnimaterBubbleDrop(bubble, worldPoint, () =>
+                var tween = _bubbleAnimator.CreateBubbleDropTween(bubble, worldPoint).OnComplete(() =>
                 {
                     _effectSpawner.Spawn(bubble.transform.position, bubble.TypeId).Play();
                     _bubbleSpawner.ReleaseItem(bubble);
                 });
+                
+                sequence.Insert(0, tween);
             }
+
+            await PlaySequenceAsync(sequence);
         }
 
         private bool IsMovePossible()
@@ -241,8 +262,10 @@ namespace BubbleShooter
             return true;
         }
 
-        private IEnumerator MoveBubblesDown(Action onComplete = null)
+        private async Task MoveBubblesDownAsync()
         {
+            var sequence = DOTween.Sequence();
+
             for (int row = _rowsCount - 2; row >= 0; row--)
             {
                 for (int column = 0; column < _columnsCount; column++)
@@ -256,17 +279,21 @@ namespace BubbleShooter
 
                         _hexGrid[nextRow, column].Bubble = bubble;
                         _hexGrid[row, column].Bubble = null;
-                        _bubbleAnimator.AnimaterBubbleMove(bubble, worldPoint);
+                        var tween = _bubbleAnimator.CreateBubbleMoveTween(bubble, worldPoint);
+
+                        sequence.Insert(0, tween);
                     }
                 }
             }
-            SpawnBubblesLine(0);
-            yield return new WaitForSeconds(_bubbleAnimator.MoveDuration);
-            onComplete?.Invoke();
+
+            await PlaySequenceAsync(sequence);
+            await SpawnBubblesLineAsync(0);
         }
 
-        private void SpawnBubblesLine(int row)
+        private async Task SpawnBubblesLineAsync(int row)
         {
+            var sequence = DOTween.Sequence();
+
             for (int column = 0; column < _columnsCount; column++)
             {
                 if (_hexGrid[row, column].Bubble != null)
@@ -279,8 +306,20 @@ namespace BubbleShooter
                 bubble.transform.position = worldPoint;
 
                 _hexGrid[row, column].Bubble = bubble;
-                _bubbleAnimator.AnimateBubbleSpawn(bubble);
+                var tween = _bubbleAnimator.CreateBubbleSpawnTween(bubble);
+
+                sequence.Insert(0f, tween);
             }
+
+            await PlaySequenceAsync(sequence);
+        }
+
+        private async Task PlaySequenceAsync(Sequence sequence)
+        {
+            sequence.Play();
+
+            while (sequence.IsActive() && sequence.IsPlaying())
+                await Task.Yield();
         }
 
         private int CalculateScorePoints(int count, bool isFloatingBubble)
