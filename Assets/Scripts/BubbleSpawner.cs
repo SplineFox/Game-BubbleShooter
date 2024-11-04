@@ -8,6 +8,7 @@ namespace BubbleShooter
     {
         [SerializeField] private List<Sprite> _sprites;
 
+        private int _previousTypeId;
         private int _nextTypeId;
 
         public int NextTypeId => _nextTypeId;
@@ -17,16 +18,25 @@ namespace BubbleShooter
         protected override void Awake()
         {
             base.Awake();
-            _nextTypeId = GenerateNextTypeId();
+            GenerateNextTypeId();
         }
 
         protected override void SetupItem(Bubble bubble)
         {
             bubble.Setup(_nextTypeId, _sprites[_nextTypeId]);
-            _nextTypeId = GenerateNextTypeId();
+            GenerateNextTypeId();
         }
 
-        private int GenerateNextTypeId()
+        private void GenerateNextTypeId()
+        {
+            _previousTypeId = _nextTypeId;
+            _nextTypeId = GenerateRandomTypeId();
+
+            while (_previousTypeId == _nextTypeId && _sprites.Count > 1)
+                _nextTypeId = GenerateRandomTypeId();
+        }
+
+        private int GenerateRandomTypeId()
         {
             return Random.Range(0, _sprites.Count);
         }
