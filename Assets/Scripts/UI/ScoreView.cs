@@ -1,6 +1,6 @@
-using UnityEngine;
-using DG.Tweening;
 using TMPro;
+using DG.Tweening;
+using UnityEngine;
 
 namespace BubbleShooter
 {
@@ -30,6 +30,12 @@ namespace BubbleShooter
         }
 
         public void SetValue(int value)
+        {
+            _changeTween?.Kill();
+            CurrentValue = value;
+        }
+
+        public void SetValueWithAnimation(int value)
         {
             _targetValue = value;
             PlayChangedAnimation();

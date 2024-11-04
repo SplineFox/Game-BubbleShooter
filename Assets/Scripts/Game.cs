@@ -99,7 +99,7 @@ namespace BubbleShooter
 
         private void ReloadGrid()
         {
-            for (int row = 0; row < 1; row++)
+            for (int row = 0; row < _rowsCount / 2; row++)
             {
                 SpawnBubblesLineAsync(row);
             }
@@ -152,7 +152,7 @@ namespace BubbleShooter
             
             if (!_hexGrid.IsPointInBounds(hexPoint))
             {
-                Restart();
+                Debug.Log("Lose");
                 return;
             }
 
@@ -204,7 +204,7 @@ namespace BubbleShooter
                     _score += CalculateScorePoints(floaters.Count(), true);
                 }
         
-                _scoreView.SetValue(_score);
+                _scoreView.SetValueWithAnimation(_score);
 
                 if (_existingBubbles.Count == 0)
                     return ProcessResult.Win;
