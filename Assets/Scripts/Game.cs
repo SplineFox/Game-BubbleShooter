@@ -1,10 +1,10 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 using BubbleShooter.HexGrids;
-using DG.Tweening;
 
 namespace BubbleShooter
 {
@@ -47,7 +47,7 @@ namespace BubbleShooter
         private BubbleSequenceDetector _bubbleSequenceDetector;
         private BubbleFloatersDetector _bubbleFloatersDetector;
 
-        private void Start()
+        private void Awake()
         {
             var bubbleLayer = LayerMask.NameToLayer("Bubble");
 
@@ -57,8 +57,6 @@ namespace BubbleShooter
             _bubblePhysics.Setup(0.4f, bubbleLayer);
             _bubbleSequenceDetector = new BubbleSequenceDetector(_hexGrid);
             _bubbleFloatersDetector = new BubbleFloatersDetector(_hexGrid);
-
-            Restart();
         }
 
         private void OnEnable()
