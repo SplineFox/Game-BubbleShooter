@@ -1,6 +1,9 @@
 using BubbleShooter.HexGrids;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace BubbleShooter
 {
@@ -24,7 +27,25 @@ namespace BubbleShooter
         protected override void SetupItem(Bubble bubble)
         {
             bubble.Setup(_nextTypeId, _sprites[_nextTypeId]);
+        }
+
+        public Bubble GetRandomItem()
+        {
+            var bubble = GetItem();
             GenerateNextTypeId();
+
+            return bubble;
+        }
+
+        public Bubble GetItemForExisting(List<Bubble> existingBubbles)
+        {
+            if (existingBubbles.Count == 0)
+                throw new ArgumentException();
+
+            var bubble = GetItem();
+            GenerateNextTypeIdForExisting(existingBubbles);
+
+            return bubble;
         }
 
         private void GenerateNextTypeId()
@@ -34,6 +55,19 @@ namespace BubbleShooter
 
             while (_previousTypeId == _nextTypeId && _sprites.Count > 1)
                 _nextTypeId = GenerateRandomTypeId();
+        }
+
+        private void GenerateNextTypeIdForExisting(List<Bubble> existingBubbles)
+        {
+            _previousTypeId = _nextTypeId;
+            _nextTypeId = GenerateRandomTypeId();
+
+            while (
+                !existingBubbles.Any(x => x.TypeId == _nextTypeId)
+                || (_previousTypeId == _nextTypeId && existingBubbles.Any(x => x.TypeId != _nextTypeId)))
+            {
+                _nextTypeId = GenerateRandomTypeId();
+            }
         }
 
         private int GenerateRandomTypeId()

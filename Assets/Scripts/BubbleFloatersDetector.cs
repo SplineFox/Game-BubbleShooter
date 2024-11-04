@@ -39,7 +39,9 @@ namespace BubbleShooter
             {
                 var offsetPoint = new OffsetPoint(column, 0);
                 var hexPoint = HexPoints.OffsetToHex(offsetPoint, HexCellLayoutOffset.OddRows);
-                _searchPoints.Push(hexPoint);
+
+                if (_hexGrid[hexPoint].Bubble != null)
+                    _searchPoints.Push(hexPoint);
             }
 
             while (_searchPoints.TryPop(out var searchPoint))

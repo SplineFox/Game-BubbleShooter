@@ -41,6 +41,7 @@ namespace BubbleShooter
         private int _foulsAllowedCount;
         private int _foulsCount;
         private int _score;
+        private List<Bubble> _existingBubbles;
 
         private Bubble _bubbleToLaunch;
         private BubbleTrajectory _bubbleTrajectory;
@@ -57,6 +58,8 @@ namespace BubbleShooter
             _bubblePhysics.Setup(0.4f, bubbleLayer);
             _bubbleSequenceDetector = new BubbleSequenceDetector(_hexGrid);
             _bubbleFloatersDetector = new BubbleFloatersDetector(_hexGrid);
+
+            _existingBubbles = new List<Bubble>();
         }
 
         private void OnEnable()
@@ -96,7 +99,7 @@ namespace BubbleShooter
 
         private void ReloadGrid()
         {
-            for (int row = 0; row < _rowsCount / 2; row++)
+            for (int row = 0; row < 1; row++)
             {
                 SpawnBubblesLineAsync(row);
             }
@@ -116,6 +119,8 @@ namespace BubbleShooter
                     }
                 }
             }
+
+            _existingBubbles.Clear();
         }
 
         private void OnAreaClicked(Vector3 clickPosition)
@@ -130,7 +135,7 @@ namespace BubbleShooter
             if (_bubbleToLaunch != null)
                 _bubbleSpawner.ReleaseItem(_bubbleToLaunch);
 
-            _bubbleToLaunch = _bubbleSpawner.GetItem();
+            _bubbleToLaunch = _bubbleSpawner.GetItemForExisting(_existingBubbles);
             _bubbleToLaunch.transform.position = _launchPosition.position;
 
             _nextBubbleImage.sprite = _bubbleSpawner.NextSprite;
@@ -158,16 +163,35 @@ namespace BubbleShooter
             await PlaySequenceAsync(sequence);
 
             _hexGrid[hexPoint].Bubble = _bubbleToLaunch;
+            _existingBubbles.Add(_bubbleToLaunch);
+            
             _bubbleToLaunch.SetColliderEnable(true);
             _bubbleToLaunch = null;
 
-            await ProcessBubbleAsync(hexPoint);
+            var result = await ProcessBubbleAsync(hexPoint);
 
-            ReloadBubble();
-            EnableInput();
+            switch (result)
+            {
+                case ProcessResult.Continue:
+                    {
+                        ReloadBubble();
+                        EnableInput();
+                    }
+                    break;
+                case ProcessResult.Lose:
+                    {
+                        Debug.Log("Lose");
+                    }
+                    break;
+                case ProcessResult.Win:
+                    {
+                        Debug.Log("Win");
+                    }
+                    break;
+            }
         }
 
-        private async Task ProcessBubbleAsync(HexPoint hexPoint)
+        private async Task<ProcessResult> ProcessBubbleAsync(HexPoint hexPoint)
         {
             if (_bubbleSequenceDetector.TryGetSequence(hexPoint, out var sequence))
             {
@@ -181,27 +205,26 @@ namespace BubbleShooter
                 }
         
                 _scoreView.SetValue(_score);
-                return;
+
+                if (_existingBubbles.Count == 0)
+                    return ProcessResult.Win;
+
+                return ProcessResult.Continue;
             }
 
             _soundManager.PlayBubbleStop();
             if (!TryAddFoul())
             {
-                if (IsMovePossible())
-                {
-                    await MoveBubblesDownAsync();
-        
-                    if (_bubbleFloatersDetector.TryGetFloaters(out var floaters))
-                        DropBubbles(floaters);
-        
-                    return;
-                }
-                else
-                {
-                    Debug.Log("Move not possible");
-                    return;
-                }
+                if (!IsMovePossible())
+                    return ProcessResult.Lose;
+
+                await MoveBubblesDownAsync();
+
+                if (_bubbleFloatersDetector.TryGetFloaters(out var floaters))
+                    DropBubbles(floaters);
             }
+
+            return ProcessResult.Continue;
         }
 
         private async Task PopBubblesAsync(IEnumerable<(HexPoint, Bubble)> collection)
@@ -218,8 +241,10 @@ namespace BubbleShooter
 
                     _soundManager.PlayBubblePop();
                     _effectSpawner.Spawn(bubble.transform.position, bubble.TypeId).Play();
+                    
                     _bubbleSpawner.ReleaseItem(bubble);
                     _hexGrid[element.Item1].Bubble = null;
+                    _existingBubbles.Remove(bubble);
                 });
             }
 
@@ -244,8 +269,10 @@ namespace BubbleShooter
                 {
                     _soundManager.PlayBubblePop();
                     _effectSpawner.Spawn(bubble.transform.position, bubble.TypeId).Play();
+                    
                     _bubbleSpawner.ReleaseItem(bubble);
                     _hexGrid[element.Item1].Bubble = null;
+                    _existingBubbles.Remove(bubble);
                 });
                 
                 sequence.Insert(interval, tween);
@@ -307,10 +334,11 @@ namespace BubbleShooter
                 var offsetPoint = new OffsetPoint(column, row);
                 var worldPoint = _hexGridLayout.OffsetToWorld(offsetPoint);
 
-                var bubble = _bubbleSpawner.GetItem();
+                var bubble = _bubbleSpawner.GetRandomItem();
                 bubble.transform.position = worldPoint;
-
                 _hexGrid[row, column].Bubble = bubble;
+                _existingBubbles.Add(bubble);
+
                 var tween = _bubbleAnimator.CreateBubbleSpawnTween(bubble);
 
                 sequence.Insert(0f, tween);
@@ -388,5 +416,12 @@ namespace BubbleShooter
                 previousPosition = point.Position;
             }
         }
+    }
+
+    public enum ProcessResult
+    {
+        Continue,
+        Lose,
+        Win,
     }
 }
