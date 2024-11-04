@@ -6,4 +6,7 @@ public class AppSaveData : SaveData
 
     [JsonProperty("SoundsEnabled")]
     public bool SoundsEnabled { get; set; } = true;
+
+    [JsonProperty("BestScore")]
+    public int BestScore { get; set; }
 }

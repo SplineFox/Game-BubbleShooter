@@ -5,11 +5,14 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 using BubbleShooter.HexGrids;
+using System;
 
 namespace BubbleShooter
 {
     public class Game : MonoBehaviour
     {
+        public event Action Finished;
+
         private const int _maxFoulsAllowed = 5;
         private const int _scorePerBubble = 10;
         private const int _scorePerFloatingBubble = 100;
@@ -35,6 +38,7 @@ namespace BubbleShooter
         [SerializeField] private SoundManager _soundManager;
 
         [SerializeField] private InputArea _inputArea;
+        [SerializeField] private GameUI _gameUI;
         [SerializeField] private GameSetuper _gameSetuper;
 
         private HexGrid _hexGrid;
@@ -47,6 +51,8 @@ namespace BubbleShooter
         private BubbleTrajectory _bubbleTrajectory;
         private BubbleSequenceDetector _bubbleSequenceDetector;
         private BubbleFloatersDetector _bubbleFloatersDetector;
+
+        public int Score => _score;
 
         private void Awake()
         {
@@ -152,7 +158,7 @@ namespace BubbleShooter
             
             if (!_hexGrid.IsPointInBounds(hexPoint))
             {
-                Debug.Log("Lose");
+                Finished?.Invoke();
                 return;
             }
 
@@ -179,13 +185,9 @@ namespace BubbleShooter
                     }
                     break;
                 case ProcessResult.Lose:
-                    {
-                        Debug.Log("Lose");
-                    }
-                    break;
                 case ProcessResult.Win:
                     {
-                        Debug.Log("Win");
+                        Finished?.Invoke();
                     }
                     break;
             }
