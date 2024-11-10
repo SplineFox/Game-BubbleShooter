@@ -70,6 +70,7 @@ namespace BubbleShooter
 
         private void OnEnable()
         {
+            DisableInput();
             _inputArea.Clicked += OnAreaClicked;
         }
 
@@ -90,6 +91,8 @@ namespace BubbleShooter
 
         public void Restart()
         {
+            DisableInput();
+
             _score = 0;
             _scoreView.SetValue(_score);
 
@@ -100,6 +103,7 @@ namespace BubbleShooter
             ClearGrid();
             ReloadGrid();
             ReloadBubble();
+
             EnableInput();
         }
 
@@ -144,7 +148,7 @@ namespace BubbleShooter
             _bubbleToLaunch = _bubbleSpawner.GetItemForExisting(_existingBubbles);
             _bubbleToLaunch.transform.position = _launchPosition.position;
 
-            _nextBubbleImage.sprite = _bubbleSpawner.NextSprite;
+            _nextBubbleImage.sprite = _bubbleSpawner.NextBubble.Sprite;
         }
 
         private async void LaunchBubble(Vector3 direction)
@@ -152,6 +156,7 @@ namespace BubbleShooter
             DisableInput();
             
             _bubbleToLaunch.SetColliderEnable(false);
+            _bubbleToLaunch.SetTrailEnable(true);
 
             var trajectory = _bubblePhysics.FindTrajectory(_launchPosition.position, direction);
             var hexPoint = _hexGridLayout.WorldToHex(trajectory.LastPoint.Position);
@@ -173,6 +178,7 @@ namespace BubbleShooter
             _existingBubbles.Add(_bubbleToLaunch);
             
             _bubbleToLaunch.SetColliderEnable(true);
+            _bubbleToLaunch.SetTrailEnable(false);
             _bubbleToLaunch = null;
 
             var result = await ProcessBubbleAsync(hexPoint);
@@ -241,9 +247,10 @@ namespace BubbleShooter
                 {
                     var bubble = element.Item2;
                     bubble.SetColliderEnable(false);
+                    bubble.SetTrailEnable(false);
 
                     _soundManager.PlayBubblePop();
-                    _effectSpawner.Spawn(bubble.transform.position, bubble.TypeId).Play();
+                    _effectSpawner.Spawn(bubble.transform.position, bubble.Setting.Color).Play();
                     
                     _bubbleSpawner.ReleaseItem(bubble);
                     _hexGrid[element.Item1].Bubble = null;
@@ -263,6 +270,7 @@ namespace BubbleShooter
             {
                 var bubble = element.Item2;
                 bubble.SetColliderEnable(false);
+                bubble.SetTrailEnable(false);
 
                 var offsetPoint = HexPoints.HexToOffset(element.Item1, HexCellLayoutOffset.OddRows);
                 var offsetDropPoint = new OffsetPoint(offsetPoint.column, _hexGrid.RowCount);
@@ -271,7 +279,7 @@ namespace BubbleShooter
                 var tween = _bubbleAnimator.CreateBubbleDropTween(bubble, worldPoint).OnComplete(() =>
                 {
                     _soundManager.PlayBubblePop();
-                    _effectSpawner.Spawn(bubble.transform.position, bubble.TypeId).Play();
+                    _effectSpawner.Spawn(bubble.transform.position, bubble.Setting.Color).Play();
                     
                     _bubbleSpawner.ReleaseItem(bubble);
                     _hexGrid[element.Item1].Bubble = null;

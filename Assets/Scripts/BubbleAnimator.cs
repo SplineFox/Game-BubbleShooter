@@ -35,10 +35,15 @@ public class BubbleAnimator : MonoBehaviour
             previousPosition = point.Position;
         }
 
-        distance = Vector2.Distance(previousPosition, trajectory.LastPoint.Position);
+        var direction = (trajectory.LastPoint.Position - previousPosition).normalized;
+        var lastPoint = trajectory.LastPoint.Position - direction * 0.2f;
+
+        distance = Vector2.Distance(previousPosition, lastPoint);
         duration = distance / _moveDistancePerSecond;
-        sequence.Append(bubble.transform.DOMove(worldPoint, duration).SetEase(Ease.Linear));
-        sequence.Append(bubble.transform.DOScale(0.75f, 0.075f).SetLoops(2, LoopType.Yoyo));
+
+        sequence.Append(bubble.transform.DOMove(lastPoint, duration).SetEase(Ease.Linear));
+        sequence.Append(bubble.transform.DOMove(worldPoint, 0.15f).SetEase(Ease.Linear));
+        sequence.Insert(duration, bubble.transform.DOScale(0.75f, 0.075f).SetLoops(2, LoopType.Yoyo));
 
         return sequence;
     }

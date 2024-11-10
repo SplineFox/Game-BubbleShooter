@@ -1,7 +1,6 @@
-using BubbleShooter.HexGrids;
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -9,13 +8,13 @@ namespace BubbleShooter
 {
     public class BubbleSpawner : BubblePool
     {
-        [SerializeField] private List<Sprite> _sprites;
+        [SerializeField] private List<BubbleSetting> _bubbleSettings;
 
         private int _previousTypeId;
         private int _nextTypeId;
 
         public int NextTypeId => _nextTypeId;
-        public Sprite NextSprite => _sprites[NextTypeId];
+        public BubbleSetting NextBubble => _bubbleSettings[NextTypeId];
 
 
         protected override void Awake()
@@ -26,7 +25,7 @@ namespace BubbleShooter
 
         protected override void SetupItem(Bubble bubble)
         {
-            bubble.Setup(_nextTypeId, _sprites[_nextTypeId]);
+            bubble.Setup(_nextTypeId, _bubbleSettings[_nextTypeId]);
         }
 
         public Bubble GetRandomItem()
@@ -53,7 +52,7 @@ namespace BubbleShooter
             _previousTypeId = _nextTypeId;
             _nextTypeId = GenerateRandomTypeId();
 
-            while (_previousTypeId == _nextTypeId && _sprites.Count > 1)
+            while (_previousTypeId == _nextTypeId && _bubbleSettings.Count > 1)
                 _nextTypeId = GenerateRandomTypeId();
         }
 
@@ -72,7 +71,7 @@ namespace BubbleShooter
 
         private int GenerateRandomTypeId()
         {
-            return Random.Range(0, _sprites.Count);
+            return Random.Range(0, _bubbleSettings.Count);
         }
     }
 }

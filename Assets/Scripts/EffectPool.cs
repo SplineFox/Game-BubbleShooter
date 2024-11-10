@@ -16,14 +16,14 @@ namespace BubbleShooter
             _pool = new ObjectPool<Effect>(OnCreateEffect, OnGetEffect, OnReleaseEffect, OnDestroyEffect, true, _defaultCapacity, _maxCapacity);
         }
 
-        protected abstract void SetupItem(Effect bubble, int effectId);
+        protected abstract void SetupItem(Effect bubble, Color color);
 
-        public Effect Spawn(Vector3 worldPoint, int effectId)
+        public Effect Spawn(Vector3 worldPoint, Color color)
         {
             var item = _pool.Get();
             item.transform.position = worldPoint;
             
-            SetupItem(item, effectId);
+            SetupItem(item, color);
             return item;
         }
 

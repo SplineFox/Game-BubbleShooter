@@ -2343,12 +2343,6 @@ MonoBehaviour:
   _defaultCapacity: 8
   _maxCapacity: 16
   _prefab: {fileID: 257303494346966759, guid: 7a0f5e20265cc9e4c9aa7026b4dd25ad, type: 3}
-  _colors:
-  - {r: 0.10196079, g: 0.76470596, b: 0.98823535, a: 1}
-  - {r: 0.08627451, g: 0.9176471, b: 0.43137258, a: 1}
-  - {r: 0.72156864, g: 0.18823531, b: 0.98823535, a: 1}
-  - {r: 0.98823535, g: 0.10588236, b: 0.61960787, a: 1}
-  - {r: 0.9725491, g: 0.73333335, b: 0.027450982, a: 1}
 --- !u!4 &1239108638
 Transform:
   m_ObjectHideFlags: 0
@@ -3280,12 +3274,12 @@ MonoBehaviour:
   _defaultCapacity: 50
   _maxCapacity: 100
   _prefab: {fileID: 8482310610131791925, guid: 3156f56a11af9d44abff43e77d1c937d, type: 3}
-  _sprites:
-  - {fileID: 21300000, guid: 4cfb24fe8da33d046b2497a46c3fe7a2, type: 3}
-  - {fileID: 21300000, guid: 31a2d42aa03ad4e4f853bf159a2b2e5c, type: 3}
-  - {fileID: 21300000, guid: 8dec04e1ece0b144589edc95425c68e1, type: 3}
-  - {fileID: 21300000, guid: 405c3dec8c64547449994d3b04e156bf, type: 3}
-  - {fileID: 21300000, guid: 68d33a1aa69d5ab4d87b84aff95a198b, type: 3}
+  _bubbleSettings:
+  - {fileID: 11400000, guid: 636ba8db25539df43a048f36eb8938b5, type: 2}
+  - {fileID: 11400000, guid: 4f3b9c6a4f8237b42b058124df7bed6d, type: 2}
+  - {fileID: 11400000, guid: db91e4e5a205db042b2f7f6e30a17f8d, type: 2}
+  - {fileID: 11400000, guid: 193423c2c86530c43a6a42de5f155e54, type: 2}
+  - {fileID: 11400000, guid: 799c332bc32b8e942bb443086332ed9e, type: 2}
 --- !u!4 &1626152590
 Transform:
   m_ObjectHideFlags: 0
