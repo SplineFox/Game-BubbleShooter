@@ -1014,7 +1014,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0554016f9ac8690429bfb3e9ea42a15a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _rowsCount: 17
+  _rowsCount: 15
   _columnsCount: 15
   _hexGridLayout: {fileID: 836836582}
   _scoreView: {fileID: 1910753188}
@@ -1283,7 +1283,7 @@ Grid:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 836836578}
   m_Enabled: 1
-  m_CellSize: {x: 1, y: 1, z: 1}
+  m_CellSize: {x: 0.8659766, y: 1, z: 1}
   m_CellGap: {x: 0, y: 0, z: 0}
   m_CellLayout: 1
   m_CellSwizzle: 0
@@ -2344,11 +2344,11 @@ MonoBehaviour:
   _maxCapacity: 16
   _prefab: {fileID: 257303494346966759, guid: 7a0f5e20265cc9e4c9aa7026b4dd25ad, type: 3}
   _colors:
-  - {r: 0.37647063, g: 0.7490196, b: 0.97647065, a: 1}
-  - {r: 0.6117647, g: 0.77647066, b: 0.52156866, a: 1}
-  - {r: 0.9490197, g: 0.7137255, b: 0.3921569, a: 1}
-  - {r: 0.854902, g: 0.5019608, b: 0.6392157, a: 1}
-  - {r: 0.6392157, g: 0.43529415, b: 0.82745105, a: 1}
+  - {r: 0.10196079, g: 0.76470596, b: 0.98823535, a: 1}
+  - {r: 0.08627451, g: 0.9176471, b: 0.43137258, a: 1}
+  - {r: 0.72156864, g: 0.18823531, b: 0.98823535, a: 1}
+  - {r: 0.98823535, g: 0.10588236, b: 0.61960787, a: 1}
+  - {r: 0.9725491, g: 0.73333335, b: 0.027450982, a: 1}
 --- !u!4 &1239108638
 Transform:
   m_ObjectHideFlags: 0
@@ -2910,7 +2910,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c2e3cef24382c84c83cc6b95ff3453a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _app: {fileID: 1563767357}
   _game: {fileID: 763731886}
   _soundManager: {fileID: 468437572}
   _soundSwitch: {fileID: 164094569}
@@ -3282,11 +3281,11 @@ MonoBehaviour:
   _maxCapacity: 100
   _prefab: {fileID: 8482310610131791925, guid: 3156f56a11af9d44abff43e77d1c937d, type: 3}
   _sprites:
-  - {fileID: 21300000, guid: 62a92c3d5cd023844abc7e148e31a443, type: 3}
-  - {fileID: 21300000, guid: c02aca041dc8a0442abdeee0f5449500, type: 3}
-  - {fileID: 21300000, guid: 5d30470a2aee5cc47901b7b0dd28fe70, type: 3}
-  - {fileID: 21300000, guid: 86a85f4375334724693228355c5d31cb, type: 3}
-  - {fileID: 21300000, guid: 6254daabc39981d4ea82f9bc280e7dfe, type: 3}
+  - {fileID: 21300000, guid: 4cfb24fe8da33d046b2497a46c3fe7a2, type: 3}
+  - {fileID: 21300000, guid: 31a2d42aa03ad4e4f853bf159a2b2e5c, type: 3}
+  - {fileID: 21300000, guid: 8dec04e1ece0b144589edc95425c68e1, type: 3}
+  - {fileID: 21300000, guid: 405c3dec8c64547449994d3b04e156bf, type: 3}
+  - {fileID: 21300000, guid: 68d33a1aa69d5ab4d87b84aff95a198b, type: 3}
 --- !u!4 &1626152590
 Transform:
   m_ObjectHideFlags: 0

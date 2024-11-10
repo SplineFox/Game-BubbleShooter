@@ -16,7 +16,7 @@ namespace BubbleShooter
         [SerializeField] private RectTransform _circle2;
         [SerializeField] private Transform _launchPosition;
 
-        public void Setup(Vector2Int gridSize, Vector2 gridCellSize, float bubblePhysicalRadius)
+        public void Setup(Vector2Int gridSize, Vector2 gridCellSize, float bubbleCastRadius)
         {
             var gridWidth = gridSize.x * gridCellSize.x + gridCellSize.x / 2f;
             var gridHeight = (gridSize.y - 1) * (gridCellSize.y * 0.75f) + gridCellSize.y;
@@ -29,7 +29,7 @@ namespace BubbleShooter
             SetupLaunchPosition(gridRect, _launchPosition);
             SetupCamera(gridRect, _camera);
             SetupCanvas(gridRect, _canvas, _circleDown, _circle1, _circle2);
-            SetupWalls(gridRect, bubblePhysicalRadius);
+            SetupWalls(gridRect, bubbleCastRadius);
         }
 
         private void SetupCamera(Rect gridRect, Camera camera)
@@ -74,7 +74,7 @@ namespace BubbleShooter
 
         private void SetupWalls(Rect gridRect, float bubblePhysicalRadius)
         {
-            var thiknessAdditional = 1f - bubblePhysicalRadius * 2f;
+            var thiknessAdditional = bubblePhysicalRadius * 2f;
             var thicknessDoubled = _wallThickness * 2f;
             var thicknessHalf = _wallThickness / 2f;
 

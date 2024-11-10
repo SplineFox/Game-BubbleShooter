@@ -61,7 +61,7 @@ namespace BubbleShooter
             _gameSetuper.Setup(new Vector2Int(_columnsCount, _rowsCount), _hexGridLayout.CellSize, 0.4f);
             _hexGrid = new HexGrid(_rowsCount, _columnsCount);
 
-            _bubblePhysics.Setup(0.4f, bubbleLayer);
+            _bubblePhysics.Setup(0.2f, 0.4f, bubbleLayer);
             _bubbleSequenceDetector = new BubbleSequenceDetector(_hexGrid);
             _bubbleFloatersDetector = new BubbleFloatersDetector(_hexGrid);
 
@@ -155,7 +155,8 @@ namespace BubbleShooter
 
             var trajectory = _bubblePhysics.FindTrajectory(_launchPosition.position, direction);
             var hexPoint = _hexGridLayout.WorldToHex(trajectory.LastPoint.Position);
-            
+            _bubbleTrajectory = trajectory;
+
             if (!_hexGrid.IsPointInBounds(hexPoint))
             {
                 Finished?.Invoke();
@@ -410,7 +411,7 @@ namespace BubbleShooter
             foreach (var point in _bubbleTrajectory)
             {
                 Gizmos.color = Color.cyan;
-                Gizmos.DrawWireSphere(point.Position, 0.32f);
+                Gizmos.DrawWireSphere(point.Position, 0.2f);
                 Gizmos.DrawLine(previousPosition, point.Position);
                 
                 Gizmos.color = Color.blue;

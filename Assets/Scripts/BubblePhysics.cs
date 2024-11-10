@@ -6,13 +6,15 @@ namespace BubbleShooter
     {
         private const int MAX_ITERATIONS_COUNT = 100;
 
+        private float _bubbleCastRadius;
         private float _bubbleRadius;
         private int _bubbleLayer;
 
         private RaycastHit2D _raycastHit;
 
-        public void Setup(float bubbleRadius, int bubbleLayer)
+        public void Setup(float bubbleCastRadius, float bubbleRadius, int bubbleLayer)
         {
+            _bubbleCastRadius = bubbleCastRadius;
             _bubbleRadius = bubbleRadius;
             _bubbleLayer = bubbleLayer;
         }
@@ -41,7 +43,7 @@ namespace BubbleShooter
                 return false;
             }
 
-            _raycastHit = Physics2D.CircleCast(point.Position, _bubbleRadius, point.Direction);
+            _raycastHit = Physics2D.CircleCast(point.Position, _bubbleCastRadius, point.Direction);
             if (_raycastHit.collider == null)
             {
                 nextPoint = default;
@@ -49,7 +51,7 @@ namespace BubbleShooter
             }
 
             var bubbleReached = _raycastHit.collider.gameObject.layer == _bubbleLayer;
-            var position = _raycastHit.point + _raycastHit.normal * _bubbleRadius;
+            var position = _raycastHit.point + _raycastHit.normal * _bubbleCastRadius;
             var direction = bubbleReached ? Vector2.zero : Vector2.Reflect(point.Direction, _raycastHit.normal);
 
             nextPoint = new BubbleTrajectoryPoint(position, direction);
