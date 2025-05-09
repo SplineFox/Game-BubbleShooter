@@ -9,4 +9,4 @@
 + ***Scoring System*** - Player earn more points for clearing larger groups of bubbles in a single shot.
 + ***Penalty System*** - Players are penalized for shots that don’t pop any bubbles. There is a counter representing remaining shots before a new row appears. Each missed shot or failed match reduces the counter by one. Once the counter reaches zero after five misses, the game adds a new row of bubbles from the top. The player then gets four additional attempts before the next penalty.
 
-<video src='https://github.com/SplineFox/Game-BubbleShooter/blob/master/ReadmeMedia/BubbleShooter%20-%20Gameplay.mp4' width=256/>
+https://github.com/SplineFox/Game-BubbleShooter/blob/master/ReadmeMedia/BubbleShooter%20-%20Gameplay.mp4
