@@ -57,30 +57,5 @@ namespace BubbleShooter
             nextPoint = new BubbleTrajectoryPoint(position, direction);
             return true;
         }
-
-        private void OnDrawGizmos()
-        {
-            //if (_raycastHits == null)
-            //    return;
-            //
-            //var point = Vector2.zero;
-            //var normal = Vector2.zero;
-            //foreach (var hit in _raycastHits)
-            //{
-            //    point += hit.point;
-            //    normal += hit.normal;
-            //
-            //    Gizmos.color = Color.magenta;
-            //    Gizmos.DrawWireSphere(hit.point, 0.02f);
-            //    GizmosUtils.DrawArrow(hit.point, hit.point + hit.normal);
-            //}
-            //
-            //point /= _raycastHits.Count;
-            //normal.Normalize();
-            //
-            //Gizmos.color = Color.red;
-            //Gizmos.DrawWireSphere(point, 0.02f);
-            //GizmosUtils.DrawArrow(point, point + normal);
-        }
     }
 }
