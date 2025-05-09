@@ -1,5 +1,5 @@
 <!--![Social Preview](https://github.com/SplineFox/Game-BugArena/blob/master/ReadmeMedia/Bug%20Arena%20-%20Social%20Preview.png)-->
-<img src="https://github.com/SplineFox/Game-BubbleShooter/blob/master/ReadmeMedia/BubbleShooter%20-%20App%20Icon.png" width="256">
+<img src="https://github.com/SplineFox/Game-BubbleShooter/blob/master/ReadmeMedia/BubbleShooter%20-%20App%20Icon.png" width="128">
 
 ## Overview
 ***Bubble Shooter*** is a simple implementation of the popular arcade game where players aim and launch colored bubbles onto a grid filled with other bubbles. The objective is to clear the entire board by forming groups of matching-colored bubbles and achieving the highest possible score. The core gameplay mechanics include:
