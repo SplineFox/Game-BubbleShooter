@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: BubbleSetting 1
   m_EditorClassIdentifier: 
   _sprite: {fileID: 21300000, guid: 4cfb24fe8da33d046b2497a46c3fe7a2, type: 3}
-  _color: {r: 0.14117648, g: 0.6901961, b: 0.87843144, a: 1}
+  _color: {r: 0.07450981, g: 0.7607844, b: 0.9058824, a: 1}
